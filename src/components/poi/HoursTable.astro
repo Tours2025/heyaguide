@@ -1,0 +1,106 @@
+---
+import { formatHoursTable } from '../../lib/hours';
+import type { WeekHours } from '../../lib/hours';
+
+interface Props {
+  hours: WeekHours;
+}
+
+const { hours } = Astro.props;
+const rows = formatHoursTable(hours);
+---
+
+<div class="hours-table" role="table" aria-label="Weekly opening hours">
+  <div class="head" role="row">
+    <span role="columnheader">Day</span>
+    <span role="columnheader">Hours</span>
+  </div>
+  {rows.map((row) => (
+    <div
+      class:list={['row', { today: row.isToday, closed: row.closed }]}
+      role="row"
+    >
+      <span class="day" role="cell">
+        {row.day}
+        {row.isToday && <span class="today-tag" aria-label="Today">today</span>}
+      </span>
+      <span class="time" role="cell">
+        {row.hours}
+        {row.note && <span class="note">{row.note}</span>}
+      </span>
+    </div>
+  ))}
+</div>
+
+<style>
+  .hours-table {
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-bg-muted);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    font-size: var(--fs-sm);
+  }
+
+  .head, .row {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    padding: var(--space-3) var(--space-5);
+    align-items: start;
+    gap: var(--space-4);
+  }
+
+  .head {
+    background: var(--color-bg-muted);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-ink-muted);
+  }
+
+  .row + .row { border-top: 1px solid var(--color-bg-muted); }
+
+  .row.today {
+    background: var(--color-brand-tint);
+  }
+
+  .day {
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+
+  .today-tag {
+    display: inline-block;
+    margin-left: var(--space-2);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--color-brand);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+  }
+
+  .time {
+    color: var(--color-ink-muted);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .row.closed .time {
+    color: var(--color-danger);
+  }
+
+  .note {
+    display: block;
+    margin-top: 2px;
+    font-size: var(--fs-xs);
+    color: var(--color-ink-subtle);
+    font-style: italic;
+  }
+
+  @media (max-width: 480px) {
+    .head, .row {
+      grid-template-columns: 60px 1fr;
+      padding: var(--space-3);
+      gap: var(--space-3);
+    }
+  }
+</style>

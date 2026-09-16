@@ -1,0 +1,59 @@
+---
+interface Props {
+  slug: string;
+  images: string[];
+}
+
+const { slug, images } = Astro.props;
+const allImages = images ?? [];
+---
+
+{allImages.length > 0 && (
+  <div class="gallery">
+    {allImages.map((img, i) => (
+      <a
+        href={`/places/${slug}/${img}`}
+        class="gallery-item"
+        data-lightbox
+        data-index={i}
+        aria-label={`Open image ${i + 1}`}
+      >
+        <img
+          src={`/places/${slug}/${img}`}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          width="400"
+          height="300"
+        />
+      </a>
+    ))}
+  </div>
+)}
+
+<style>
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: var(--space-3);
+  }
+
+  .gallery-item {
+    display: block;
+    aspect-ratio: 4/3;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--color-bg-muted);
+    transition: transform var(--dur-base) var(--ease-out);
+  }
+
+  .gallery-item:hover {
+    transform: scale(1.02);
+  }
+
+  .gallery-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+</style>

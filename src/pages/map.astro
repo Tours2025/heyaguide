@@ -1,0 +1,315 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import MapView from '../components/map/MapView';
+
+const allPois = await getCollection('places');
+const url = Astro.url;
+const initialCategory = url.searchParams.get('category') ?? undefined;
+const initialPlace = url.searchParams.get('place') ?? undefined;
+
+// Serialize POIs into minimal payload (id, coords, name, category, short, hours)
+const poisForMap = allPois.map((p) => ({
+  data: {
+    slug: p.data.slug,
+    name: p.data.name,
+    category: p.data.category,
+    shortDescription: p.data.shortDescription,
+    coordinates: p.data.coordinates,
+    hours: p.data.hours,
+  },
+  id: p.id,
+  body: p.body,
+  collection: 'places',
+}));
+---
+
+<BaseLayout
+  title="Istanbul Map"
+  description="Interactive map of Istanbul landmarks, with transit lines, walk-distance rings, and the Heya Hotel pin."
+  bodyClass="map-page"
+>
+  <div class="map-page">
+    <header class="map-header">
+      <div class="container">
+        <p class="eyebrow">Interactive</p>
+        <h1>The whole city, on one map.</h1>
+        <p class="map-sub">
+          Walk-distance rings from Heya, transit overlay (T1 tram, M2 metro, F1 funicular, ferries), and every landmark with one tap to open its details.
+        </p>
+      </div>
+    </header>
+
+    <MapView
+      client:only="react"
+      pois={poisForMap as any}
+      initialCategory={initialCategory}
+      initialPlace={initialPlace}
+    />
+  </div>
+</BaseLayout>
+
+<style is:global>
+  .map-page main { padding-top: 0; }
+
+  .map-header {
+    padding: var(--space-8) 0 var(--space-5);
+    background: var(--color-bg-elevated);
+    border-bottom: 1px solid var(--color-bg-muted);
+  }
+
+  .map-header h1 {
+    font-size: clamp(2rem, 4vw + 1rem, 3.25rem);
+    margin: var(--space-2) 0 var(--space-3);
+  }
+
+  .map-sub {
+    font-size: var(--fs-md);
+    color: var(--color-ink-muted);
+    max-width: 60ch;
+    margin: 0;
+  }
+
+  .map-shell {
+    position: relative;
+    height: calc(100dvh - var(--header-height) - 220px);
+    min-height: 480px;
+    width: 100%;
+  }
+
+  .map-canvas {
+    position: absolute;
+    inset: 0;
+  }
+
+  .map-controls {
+    position: absolute;
+    top: var(--space-4);
+    left: var(--space-4);
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .control-card {
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    box-shadow: var(--shadow-lg);
+    pointer-events: auto;
+    min-width: 240px;
+  }
+
+  .control-title {
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wider);
+    color: var(--color-ink-muted);
+    margin: 0 0 var(--space-3);
+    font-weight: 600;
+  }
+
+  .cat-toggles {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    margin-bottom: var(--space-3);
+  }
+
+  .cat-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+    font-size: var(--fs-sm);
+    color: var(--color-ink);
+    background: transparent;
+    transition: background var(--dur-fast) var(--ease-out);
+    text-align: left;
+    width: 100%;
+  }
+
+  .cat-toggle .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+    border: 2px solid var(--color-bg-elevated);
+    box-shadow: 0 0 0 1px var(--accent);
+    transition: opacity var(--dur-fast) var(--ease-out);
+  }
+
+  .cat-toggle.off {
+    color: var(--color-ink-subtle);
+  }
+
+  .cat-toggle.off .dot {
+    opacity: 0.3;
+  }
+
+  .cat-toggle:hover {
+    background: var(--color-bg-muted);
+  }
+
+  .toggles-row {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--color-bg-muted);
+  }
+
+  .switch {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-sm);
+    color: var(--color-ink);
+    cursor: pointer;
+  }
+
+  .switch input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--color-brand);
+  }
+
+  /* Heya pin animation */
+  .heya-marker {
+    position: relative;
+    cursor: default;
+  }
+
+  .heya-pulse {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    bottom: 0;
+    left: 0;
+    border-radius: 50%;
+    background: rgba(197, 160, 89, 0.4);
+    transform: translate(-50%, 0);
+    animation: heya-pulse 2.4s var(--ease-in-out) infinite;
+  }
+
+  @keyframes heya-pulse {
+    0% { transform: translate(-50%, 0) scale(0.6); opacity: 0.8; }
+    100% { transform: translate(-50%, 0) scale(2.4); opacity: 0; }
+  }
+
+  .heya-pin {
+    position: relative;
+    transform: translate(-50%, -100%);
+  }
+
+  .heya-label {
+    position: absolute;
+    top: -28px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--color-surface-dark);
+    color: var(--color-ink-on-dark);
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    white-space: nowrap;
+    box-shadow: var(--shadow-md);
+  }
+
+  /* Popup styling */
+  .maplibreg-popup-content.maplibreg-popup-content {
+    padding: var(--space-5);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-xl);
+    font-family: var(--font-sans);
+  }
+
+  .map-popup .popup-cat {
+    display: inline-block;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: var(--tracking-wide);
+    color: white;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    text-transform: uppercase;
+    margin-bottom: var(--space-3);
+  }
+
+  .map-popup .popup-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    margin: 0 0 var(--space-2);
+    color: var(--color-ink);
+  }
+
+  .map-popup .popup-status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    margin-bottom: var(--space-3);
+  }
+
+  .map-popup .popup-status .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .map-popup .popup-desc {
+    font-size: var(--fs-sm);
+    color: var(--color-ink-muted);
+    margin: 0 0 var(--space-4);
+    line-height: var(--lh-normal);
+  }
+
+  .map-popup .popup-cta {
+    display: inline-block;
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    color: var(--color-brand);
+    text-decoration: none;
+  }
+
+  .map-popup .popup-cta:hover {
+    color: var(--color-brand-strong);
+  }
+
+  @media (max-width: 720px) {
+    .map-shell {
+      height: calc(100dvh - var(--header-height) - 280px);
+      min-height: 420px;
+    }
+
+    .map-controls {
+      top: auto;
+      bottom: var(--space-4);
+      left: var(--space-3);
+      right: var(--space-3);
+    }
+
+    .control-card {
+      min-width: 0;
+      width: 100%;
+    }
+
+    .cat-toggles {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: var(--space-1);
+    }
+
+    .cat-toggle {
+      flex: 1 1 auto;
+      font-size: var(--fs-xs);
+      padding: 6px var(--space-2);
+    }
+  }
+</style>

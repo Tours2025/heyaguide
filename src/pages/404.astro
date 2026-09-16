@@ -1,0 +1,81 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout
+  title="Page not found"
+  description="That page doesn't exist. Here's how to get back."
+  bodyClass="not-found-page"
+>
+  <section class="not-found">
+    <div class="container container-narrow">
+      <p class="eyebrow">404</p>
+      <h1>This corner of Istanbul is on no map.</h1>
+      <p>
+        The page you're looking for doesn't exist (yet). The famous Blue Mosque is
+        south of here. The Grand Bazaar is past Eminönü. And Heya Hotel is right
+        where you left it.
+      </p>
+      <div class="nf-ctas">
+        <a href="/" class="cta-primary">Take me home</a>
+        <a href="/map" class="cta-secondary">Open the map</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .not-found {
+    padding: var(--space-9) 0;
+    text-align: center;
+  }
+
+  .not-found h1 {
+    font-size: clamp(2.25rem, 5vw + 1rem, 3.75rem);
+    margin: var(--space-3) 0 var(--space-5);
+  }
+
+  .not-found p {
+    color: var(--color-ink-muted);
+    font-size: var(--fs-md);
+    line-height: var(--lh-loose);
+    margin-bottom: var(--space-6);
+  }
+
+  .nf-ctas {
+    display: flex;
+    gap: var(--space-3);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .cta-primary {
+    display: inline-flex;
+    padding: var(--space-3) var(--space-5);
+    background: var(--color-brand);
+    color: var(--color-ink-on-dark);
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .cta-primary:hover {
+    background: var(--color-brand-strong);
+    color: var(--color-ink-on-dark);
+  }
+
+  .cta-secondary {
+    display: inline-flex;
+    padding: var(--space-3) var(--space-5);
+    border: 1.5px solid var(--color-brand);
+    color: var(--color-brand);
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .cta-secondary:hover {
+    background: var(--color-brand);
+    color: var(--color-ink-on-dark);
+  }
+</style>

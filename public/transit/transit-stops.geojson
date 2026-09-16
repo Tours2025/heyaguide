@@ -1,0 +1,45 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Taksim (M2 + F1)", "line": "M2" },
+      "geometry": { "type": "Point", "coordinates": [28.9847, 41.0379] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Şişhane (M2)", "line": "M2" },
+      "geometry": { "type": "Point", "coordinates": [28.9736, 41.0296] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Karaköy (T1 + ferry)", "line": "T1" },
+      "geometry": { "type": "Point", "coordinates": [28.9754, 41.0224] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Eminönü (T1 + ferry)", "line": "T1" },
+      "geometry": { "type": "Point", "coordinates": [28.9711, 41.0166] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Sultanahmet (T1)", "line": "T1" },
+      "geometry": { "type": "Point", "coordinates": [28.9784, 41.0086] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Beyazıt (T1)", "line": "T1" },
+      "geometry": { "type": "Point", "coordinates": [28.9701, 41.0138] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Kabataş (F1 + T1 + ferry)", "line": "F1" },
+      "geometry": { "type": "Point", "coordinates": [28.9933, 41.0276] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Yenikapı (M2 + Marmaray)", "line": "M2" },
+      "geometry": { "type": "Point", "coordinates": [28.9551, 41.0097] }
+    }
+  ]
+}

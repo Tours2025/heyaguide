@@ -1,0 +1,125 @@
+---
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <div class="footer-name">HeyaGuide</div>
+      <p class="footer-blurb">
+        Made for guests of <strong>Heya Hotel Istanbul</strong> — Kocatepe Mah.,
+        Dolapdere Taksim Cd. No:45, Beyoğlu.
+      </p>
+    </div>
+
+    <nav aria-label="Footer" class="footer-nav">
+      <h6>Explore</h6>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/map">Map</a></li>
+        <li><a href="/about">About</a></li>
+      </ul>
+    </nav>
+
+    <nav aria-label="Contact" class="footer-nav">
+      <h6>Heya Hotel</h6>
+      <ul>
+        <li><a href="tel:+902122350555">+90 212 235 0555</a></li>
+        <li><a href="mailto:[email protected]">[email protected]</a></li>
+        <li><a href="https://www.hotelheya.com" target="_blank" rel="noopener">hotelheya.com ↗</a></li>
+      </ul>
+    </nav>
+  </div>
+
+  <div class="container footer-bottom">
+    <p>© {year} HeyaGuide. Photo credits on the <a href="/about">about page</a>.</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--color-surface-dark);
+    color: var(--color-ink-on-dark);
+    padding: var(--space-8) 0 var(--space-5);
+    margin-top: var(--space-9);
+  }
+
+  .footer-inner {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: var(--space-7);
+    align-items: start;
+  }
+
+  .footer-name {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    color: var(--color-ink-on-dark);
+    margin-bottom: var(--space-3);
+  }
+
+  .footer-blurb {
+    color: var(--color-ink-on-dark-muted);
+    font-size: var(--fs-sm);
+    line-height: var(--lh-loose);
+    margin: 0;
+  }
+
+  .footer-blurb strong {
+    color: var(--color-accent);
+    font-weight: 500;
+  }
+
+  .footer-nav h6 {
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wider);
+    color: var(--color-accent);
+    margin-bottom: var(--space-3);
+    font-weight: 600;
+  }
+
+  .footer-nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .footer-nav a {
+    color: var(--color-ink-on-dark);
+    font-size: var(--fs-sm);
+    text-decoration: none;
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  .footer-nav a:hover {
+    color: var(--color-accent);
+  }
+
+  .footer-bottom {
+    margin-top: var(--space-7);
+    padding-top: var(--space-5);
+    border-top: 1px solid rgba(244, 236, 224, 0.08);
+  }
+
+  .footer-bottom p {
+    color: var(--color-ink-on-dark-muted);
+    font-size: var(--fs-xs);
+    margin: 0;
+  }
+
+  .footer-bottom a {
+    color: var(--color-accent);
+  }
+
+  @media (max-width: 720px) {
+    .footer-inner {
+      grid-template-columns: 1fr;
+      gap: var(--space-5);
+    }
+  }
+</style>

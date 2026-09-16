@@ -1,0 +1,108 @@
+---
+import { categoryColor, CATEGORY_LABELS, CATEGORY_DESCRIPTIONS } from '../../lib/data';
+
+interface Props {
+  category: 'museums' | 'mosques-churches' | 'palaces-historical' | 'markets' | 'viewpoints-towers';
+  count?: number;
+  index?: number;
+}
+
+const { category, count, index = 0 } = Astro.props;
+const color = categoryColor(category);
+const label = CATEGORY_LABELS[category];
+const desc = CATEGORY_DESCRIPTIONS[category];
+---
+
+<a href={`/map?category=${category}`} class="category-card" data-reveal style={`--reveal-delay:${index * 80}ms; --accent:${color};`}>
+  <div class="cat-icon" aria-hidden="true">
+    {category === 'museums' && (
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/>
+      </svg>
+    )}
+    {category === 'mosques-churches' && (
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3v6M5 21V13a7 7 0 0 1 14 0v8M9 21v-4h6v4"/>
+      </svg>
+    )}
+    {category === 'palaces-historical' && (
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 21h18M5 21V8l7-5 7 5v13M9 13h6M9 17h6"/>
+      </svg>
+    )}
+    {category === 'markets' && (
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 9h16l-1 11H5L4 9zM8 9V6a4 4 0 0 1 8 0v3"/>
+      </svg>
+    )}
+    {category === 'viewpoints-towers' && (
+      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M5 21V8l7-5 7 5v13M9 21v-7h6v7M9 11h6"/>
+      </svg>
+    )}
+  </div>
+  <div class="cat-text">
+    <h3 class="cat-title">{label}</h3>
+    <p class="cat-desc">{desc}</p>
+    {count !== undefined && (
+      <span class="cat-count">{count} {count === 1 ? 'place' : 'places'} →</span>
+    )}
+  </div>
+</a>
+
+<style>
+  .category-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    background: var(--color-bg-elevated);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-bg-muted);
+    color: inherit;
+    text-decoration: none;
+    transition:
+      transform var(--dur-base) var(--ease-out),
+      border-color var(--dur-base) var(--ease-out),
+      box-shadow var(--dur-base) var(--ease-out);
+  }
+
+  .category-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .cat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cat-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    margin: 0 0 var(--space-2);
+    color: var(--color-ink);
+  }
+
+  .cat-desc {
+    font-size: var(--fs-sm);
+    color: var(--color-ink-muted);
+    margin: 0 0 var(--space-3);
+    line-height: var(--lh-normal);
+  }
+
+  .cat-count {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+</style>

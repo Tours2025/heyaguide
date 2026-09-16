@@ -1,0 +1,82 @@
+---
+import { todayStatus } from '../../lib/hours';
+import type { WeekHours } from '../../lib/hours';
+
+interface Props {
+  hours: WeekHours;
+  size?: 'sm' | 'md';
+}
+
+const { hours, size = 'md' } = Astro.props;
+const status = todayStatus(hours);
+const classMap = {
+  open: 'status-open',
+  'closing-soon': 'status-closing',
+  closed: 'status-closed',
+  'opens-later': 'status-closed',
+};
+const dotClass = classMap[status.status];
+---
+
+<span class={`status ${size} ${dotClass}`} role="status">
+  <span class="dot" aria-hidden="true"></span>
+  <span class="label">{status.label}</span>
+</span>
+
+<style>
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    font-size: var(--fs-sm);
+    font-weight: 600;
+    background: var(--color-bg-muted);
+    color: var(--color-ink-muted);
+  }
+
+  .status.sm {
+    padding: 3px 9px;
+    font-size: var(--fs-xs);
+  }
+
+  .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+
+  .status-open {
+    background: rgba(47, 122, 82, 0.12);
+    color: var(--color-success);
+  }
+
+  .status-open .dot {
+    background: var(--color-success);
+    box-shadow: 0 0 0 0 rgba(47, 122, 82, 0.5);
+    animation: pulse 2.4s var(--ease-in-out) infinite;
+  }
+
+  .status-closing {
+    background: rgba(182, 115, 27, 0.14);
+    color: var(--color-warning);
+  }
+
+  .status-closed {
+    background: rgba(161, 56, 56, 0.10);
+    color: var(--color-danger);
+  }
+
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(47, 122, 82, 0.6); }
+    70% { box-shadow: 0 0 0 6px rgba(47, 122, 82, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(47, 122, 82, 0); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .status-open .dot { animation: none; }
+  }
+</style>

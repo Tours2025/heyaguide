@@ -1,0 +1,179 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+const pois = await getCollection('places');
+const allCredits = pois.flatMap((p) =>
+  p.data.imageCredits.map((c) => ({ ...c, poiName: p.data.name, slug: p.data.slug })),
+);
+---
+
+<BaseLayout
+  title="About"
+  description="About HeyaGuide — and the photographers whose work appears in it."
+>
+  <div class="container about-page">
+    <header class="about-header">
+      <p class="eyebrow">About</p>
+      <h1>Your Heya concierge, in your pocket.</h1>
+      <p class="about-lead">
+        HeyaGuide is a fast, beautiful, no-sign-in web guide built for guests of
+        <strong>Heya Hotel</strong> in Taksim, Istanbul. It's the printed handout that
+        updates itself, the concierge's WhatsApp, and the laminated map — all in one
+        tab you can open the moment you sit down on the bed.
+      </p>
+    </header>
+
+    <section class="about-section">
+      <h2>What it is</h2>
+      <p>
+        Fifty-plus landmarks, mosques, museums, palaces, markets, and viewpoints —
+        each with up-to-date hours, admission, walking distance from Heya, transit
+        directions, and a small set of real photographs. Everything renders on a
+        single static site, served from Cloudflare's edge, optimised to load fast on
+        hotel WiFi and slow 4G.
+      </p>
+      <p>
+        The map shows where everything is. Walk rings from Heya at 3 km and 5 km
+        help you decide what's worth the walk. Transit overlay (T1 tram, M2 metro,
+        F1 funicular, ferry terminals) makes the getting-there half of the problem
+        easier too.
+      </p>
+    </section>
+
+    <section class="about-section">
+      <h2>How to use it</h2>
+      <ol>
+        <li>Save this URL to your home screen (or bookmark it).</li>
+        <li>Open the <a href="/map">map</a> to see everything at once.</li>
+        <li>Tap a marker for hours and a quick blurb.</li>
+        <li>Tap "Read more" for the full page with admission and getting-there.</li>
+      </ol>
+    </section>
+
+    <section class="about-section">
+      <h2>Photos &amp; credits</h2>
+      <p>
+        Every photograph in HeyaGuide is credited to its original author and licensed
+        for reuse. Most come from Wikimedia Commons under Creative Commons (CC BY-SA 4.0
+        or CC BY). Tap a place page to see credits for that specific landmark.
+      </p>
+      <details class="credits-details">
+        <summary>Full credit list ({allCredits.length} photos)</summary>
+        <table class="credits-table">
+          <thead>
+            <tr>
+              <th>Place</th>
+              <th>File</th>
+              <th>Author</th>
+              <th>Source</th>
+              <th>License</th>
+            </tr>
+          </thead>
+          <tbody>
+            {allCredits.map((c) => (
+              <tr>
+                <td><a href={`/places/${c.slug}`}>{c.poiName}</a></td>
+                <td><code>{c.file}</code></td>
+                <td><a href={c.url} target="_blank" rel="noopener">{c.author}</a></td>
+                <td>{c.source}</td>
+                <td>{c.license}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </details>
+    </section>
+
+    <section class="about-section">
+      <h2>Heya Hotel</h2>
+      <p>
+        <strong>Kocatepe Mah., Dolapdere Taksim Cd. No:45, Beyoğlu, Istanbul 34437.</strong><br />
+        A 3-star boutique hotel in the heart of Taksim, 250 m from Taksim Square and
+        a 10-minute walk to İstiklal Avenue. Free halal breakfast buffet (07:30–10:30),
+        24-hour front desk, free 500+ Mbps WiFi, airport shuttle on request.
+      </p>
+      <p>
+        <a href="tel:+902122350555">+90 212 235 0555</a> ·
+        <a href="mailto:[email protected]">[email protected]</a> ·
+        <a href="https://www.hotelheya.com" target="_blank" rel="noopener">hotelheya.com ↗</a>
+      </p>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .about-page {
+    max-width: 760px;
+    padding-top: var(--space-7);
+    padding-bottom: var(--space-8);
+  }
+
+  .about-header {
+    margin-bottom: var(--space-7);
+  }
+
+  .about-header h1 {
+    font-size: clamp(2.25rem, 5vw + 1rem, 3.5rem);
+    margin: var(--space-2) 0 var(--space-4);
+  }
+
+  .about-lead {
+    font-size: var(--fs-md);
+    color: var(--color-ink-muted);
+    line-height: var(--lh-loose);
+    max-width: 60ch;
+  }
+
+  .about-section {
+    margin-bottom: var(--space-7);
+  }
+
+  .about-section h2 {
+    font-size: var(--fs-xl);
+    margin-bottom: var(--space-4);
+  }
+
+  .about-section p {
+    color: var(--color-ink-muted);
+    line-height: var(--lh-loose);
+    margin-bottom: var(--space-4);
+  }
+
+  .credits-details summary {
+    cursor: pointer;
+    color: var(--color-brand);
+    font-weight: 600;
+    padding: var(--space-3) 0;
+  }
+
+  .credits-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: var(--space-4);
+    font-size: var(--fs-sm);
+  }
+
+  .credits-table th,
+  .credits-table td {
+    text-align: left;
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--color-bg-muted);
+  }
+
+  .credits-table th {
+    background: var(--color-bg-muted);
+    font-weight: 600;
+    color: var(--color-ink-muted);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    font-size: var(--fs-xs);
+  }
+
+  .credits-table code {
+    background: var(--color-bg-muted);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-xs);
+  }
+</style>

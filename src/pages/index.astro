@@ -1,0 +1,335 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PoiCard from '../components/poi/PoiCard.astro';
+import CategoryCard from '../components/poi/CategoryCard.astro';
+import { CATEGORY_ORDER, CATEGORY_LABELS, groupByCategory } from '../lib/data';
+
+const allPois = await getCollection('places');
+const featured = allPois
+  .filter((p) => p.data.featured)
+  .sort((a, b) => b.data.priority - a.data.priority);
+const grouped = groupByCategory(allPois);
+const categoryCounts = Object.fromEntries(
+  CATEGORY_ORDER.map((c) => [c, grouped[c].length]),
+);
+---
+
+<BaseLayout
+  title="HeyaGuide — Your Istanbul companion"
+  description="A fast, beautiful pocket guide to Istanbul for guests of Heya Hotel. 50+ landmarks with hours, admission, distance, and a map."
+>
+  <section class="hero">
+    <div class="container hero-inner">
+      <div class="hero-text">
+        <p class="eyebrow">Heya Hotel · Istanbul</p>
+        <h1 class="hero-title">
+          Your concierge, <br />in your pocket.
+        </h1>
+        <p class="hero-sub">
+          Five hundred years of empires, in your hands.
+          Skip the lobby handout — here's everything worth seeing,
+          with hours, distance, and how to get there.
+        </p>
+        <div class="hero-ctas">
+          <a href="/map" class="cta-primary">Open the map</a>
+          <a href="#featured" class="cta-secondary">Browse places</a>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="skyline">
+          <svg viewBox="0 0 600 360" width="100%" height="100%" preserveAspectRatio="xMidYMid slice">
+            <defs>
+              <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#163946"/>
+                <stop offset="100%" stop-color="#1e4d5c"/>
+              </linearGradient>
+              <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#f5e8d0"/>
+                <stop offset="100%" stop-color="#c5a059"/>
+              </linearGradient>
+            </defs>
+            <!-- Sky -->
+            <rect width="600" height="280" fill="url(#sky)"/>
+            <!-- Sun -->
+            <circle cx="450" cy="110" r="40" fill="#f5e8d0" opacity="0.85"/>
+            <!-- Far minarets -->
+            <g fill="url(#gold)" opacity="0.6">
+              <rect x="60" y="180" width="6" height="100"/>
+              <circle cx="63" cy="178" r="8"/>
+              <rect x="120" y="200" width="6" height="80"/>
+              <circle cx="123" cy="198" r="6"/>
+            </g>
+            <!-- Big central dome -->
+            <ellipse cx="300" cy="220" rx="80" ry="55" fill="url(#gold)"/>
+            <rect x="285" y="220" width="30" height="60" fill="url(#gold)"/>
+            <!-- Minarets -->
+            <g fill="url(#gold)">
+              <rect x="200" y="160" width="5" height="120"/>
+              <polygon points="195,160 210,160 202.5,148"/>
+              <circle cx="202" cy="146" r="3"/>
+              <rect x="395" y="160" width="5" height="120"/>
+              <polygon points="390,160 405,160 397.5,148"/>
+              <circle cx="397" cy="146" r="3"/>
+              <rect x="425" y="170" width="5" height="110"/>
+              <polygon points="420,170 435,170 427.5,158"/>
+              <circle cx="427" cy="156" r="3"/>
+              <rect x="170" y="170" width="5" height="110"/>
+              <polygon points="165,170 180,170 172.5,158"/>
+              <circle cx="172" cy="156" r="3"/>
+            </g>
+            <!-- Side domes -->
+            <ellipse cx="160" cy="245" rx="35" ry="22" fill="url(#gold)" opacity="0.95"/>
+            <ellipse cx="440" cy="245" rx="35" ry="22" fill="url(#gold)" opacity="0.95"/>
+            <!-- Water -->
+            <rect y="280" width="600" height="80" fill="#163946" opacity="0.4"/>
+            <g stroke="#f5e8d0" stroke-width="1" opacity="0.3">
+              <line x1="0" y1="300" x2="600" y2="298"/>
+              <line x1="0" y1="320" x2="600" y2="322"/>
+              <line x1="0" y1="340" x2="600" y2="338"/>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="categories section">
+    <div class="container">
+      <header class="section-head">
+        <p class="eyebrow">Browse by theme</p>
+        <h2>Five centuries in five categories</h2>
+      </header>
+      <div class="category-grid">
+        {CATEGORY_ORDER.map((cat, i) => (
+          <CategoryCard category={cat} count={categoryCounts[cat]} index={i} />
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section id="featured" class="featured section">
+    <div class="container">
+      <header class="section-head">
+        <p class="eyebrow">Today in Istanbul</p>
+        <h2>The must-see landmarks</h2>
+        <p class="section-sub">
+          Open right now or soon — within an hour's tram ride of Heya.
+        </p>
+      </header>
+      <div class="featured-grid">
+        {featured.map((poi, i) => (
+          <PoiCard poi={poi} index={i} />
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="map-promo section">
+    <div class="container map-promo-inner">
+      <div class="map-promo-text">
+        <p class="eyebrow">One map, all of it</p>
+        <h2>See where everything is. Walk there from Heya.</h2>
+        <p>
+          Walk-distance rings, transit overlay, and "you are here" —
+          the map is the fastest way to plan a day.
+        </p>
+        <a href="/map" class="cta-primary">Open the map</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .hero {
+    background: var(--color-bg-elevated);
+    padding: var(--space-9) 0 var(--space-8);
+    border-bottom: 1px solid var(--color-bg-muted);
+    overflow: hidden;
+  }
+
+  .hero-inner {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: var(--space-8);
+    align-items: center;
+  }
+
+  .hero-title {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    line-height: 1.05;
+    letter-spacing: -0.025em;
+    margin: 0 0 var(--space-5);
+  }
+
+  .hero-sub {
+    font-size: var(--fs-md);
+    color: var(--color-ink-muted);
+    max-width: 50ch;
+    line-height: var(--lh-loose);
+    margin-bottom: var(--space-6);
+  }
+
+  .hero-ctas {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+
+  .cta-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-5);
+    background: var(--color-brand);
+    color: var(--color-ink-on-dark);
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+      background var(--dur-fast) var(--ease-out),
+      transform var(--dur-fast) var(--ease-out);
+  }
+
+  .cta-primary:hover {
+    background: var(--color-brand-strong);
+    color: var(--color-ink-on-dark);
+    transform: translateY(-1px);
+  }
+
+  .cta-secondary {
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-3) var(--space-5);
+    background: transparent;
+    color: var(--color-brand);
+    border: 1.5px solid var(--color-brand);
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+    text-decoration: none;
+    transition:
+      background var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+
+  .cta-secondary:hover {
+    background: var(--color-brand);
+    color: var(--color-ink-on-dark);
+  }
+
+  .hero-art {
+    aspect-ratio: 5/3;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .section-head {
+    text-align: center;
+    max-width: 60ch;
+    margin: 0 auto var(--space-7);
+  }
+
+  .section-head h2 {
+    font-size: clamp(1.875rem, 3vw + 1rem, 2.75rem);
+    margin: var(--space-2) 0 var(--space-3);
+  }
+
+  .section-sub {
+    color: var(--color-ink-muted);
+    font-size: var(--fs-md);
+  }
+
+  .category-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .featured-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-5);
+  }
+
+  .map-promo {
+    background: var(--color-surface-dark);
+    color: var(--color-ink-on-dark);
+    text-align: center;
+  }
+
+  .map-promo-inner {
+    max-width: 60ch;
+    margin: 0 auto;
+  }
+
+  .map-promo-text h2 {
+    color: var(--color-ink-on-dark);
+    font-size: clamp(1.875rem, 3vw + 1rem, 2.75rem);
+    margin-bottom: var(--space-4);
+  }
+
+  .map-promo-text p {
+    color: var(--color-ink-on-dark-muted);
+    margin-bottom: var(--space-6);
+  }
+
+  @media (max-width: 820px) {
+    .hero-inner {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+    .hero { padding: var(--space-7) 0 var(--space-6); }
+    .hero-art { aspect-ratio: 16/9; order: -1; }
+  }
+</style>
+
+<script>
+  // Reveal-on-scroll for cards. Items are visible by default; JS only ADDS
+  // a fade-up entrance for items below the initial fold. This way, no-JS /
+  // prerendered / crawler-visible content stays accessible, and the animation
+  // is purely additive.
+  (() => {
+    if (!('IntersectionObserver' in window)) return;
+    // Respect reduced motion
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+
+    const reveals = document.querySelectorAll<HTMLElement>('[data-reveal]');
+    if (!reveals.length) return;
+
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const el = entry.target as HTMLElement;
+          el.classList.remove('reveal-pending');
+          io.unobserve(el);
+        }
+      });
+    }, { threshold: 0.01, rootMargin: '0px 0px -5% 0px' });
+
+    reveals.forEach((el, idx) => {
+      // Stagger animation across all revealed cards, whether onscreen or not.
+      el.style.setProperty('--reveal-delay', `${Math.min(idx * 80, 600)}ms`);
+      el.classList.add('reveal-pending');
+      const rect = el.getBoundingClientRect();
+      const alreadyOnscreen = rect.top < window.innerHeight - 40;
+      if (!alreadyOnscreen) io.observe(el);
+    });
+  })();
+</script>
+
+<style is:global>
+  /* Reveal animation — additive, content always visible by default.
+     We just animate from a small offset to its final position once on mount. */
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal-pending {
+      animation: reveal-up 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+      animation-delay: var(--reveal-delay, 0ms);
+    }
+  }
+  @keyframes reveal-up {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .reveal-in { /* noop — kept for backwards-compat */ }
+</style>

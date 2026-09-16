@@ -1,0 +1,109 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { categoryColor, CATEGORY_LABELS } from '../../lib/data';
+
+interface Props {
+  poi: CollectionEntry<'places'>;
+  index?: number;
+}
+
+const { poi, index = 0 } = Astro.props;
+const { slug, name, shortDescription, category, images, priority } = poi.data;
+const href = `/places/${slug}`;
+const catColor = categoryColor(category);
+---
+
+<a href={href} class="poi-card" data-reveal style={`--reveal-delay:${index * 60}ms;`}>
+  <div class="poi-card-image">
+    <img
+      src={`/places/${slug}/${images.hero}`}
+      alt={name}
+      loading={index < 2 ? 'eager' : 'lazy'}
+      decoding="async"
+      width="800"
+      height="500"
+    />
+    <span class="poi-card-chip" style={`background:${catColor};`}>
+      {CATEGORY_LABELS[category]}
+    </span>
+  </div>
+  <div class="poi-card-body">
+    <h3 class="poi-card-title">{name}</h3>
+    <p class="poi-card-desc">{shortDescription}</p>
+  </div>
+</a>
+
+<style>
+  .poi-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg-elevated);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: var(--shadow-sm);
+    transition:
+      transform var(--dur-base) var(--ease-out),
+      box-shadow var(--dur-base) var(--ease-out);
+  }
+
+  .poi-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .poi-card-image {
+    position: relative;
+    aspect-ratio: 8/5;
+    background: var(--color-bg-muted);
+    overflow: hidden;
+  }
+
+  .poi-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--dur-slow) var(--ease-out);
+  }
+
+  .poi-card:hover .poi-card-image img {
+    transform: scale(1.05);
+  }
+
+  .poi-card-chip {
+    position: absolute;
+    top: var(--space-3);
+    left: var(--space-3);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: var(--tracking-wide);
+    color: white;
+    padding: 4px 10px;
+    border-radius: var(--radius-pill);
+    text-transform: uppercase;
+  }
+
+  .poi-card-body {
+    padding: var(--space-5);
+  }
+
+  .poi-card-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    margin: 0 0 var(--space-2);
+    color: var(--color-ink);
+  }
+
+  .poi-card-desc {
+    font-size: var(--fs-sm);
+    color: var(--color-ink-muted);
+    margin: 0;
+    line-height: var(--lh-normal);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

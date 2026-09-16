@@ -1,0 +1,30 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Eminönü Ferry Terminal", "icon": "ferry" },
+      "geometry": { "type": "Point", "coordinates": [28.9711, 41.0166] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Karaköy Ferry Terminal", "icon": "ferry" },
+      "geometry": { "type": "Point", "coordinates": [28.9754, 41.0224] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Kabataş Ferry Terminal", "icon": "ferry" },
+      "geometry": { "type": "Point", "coordinates": [28.9933, 41.0276] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Salıpazarı (Asian side ferries)", "icon": "ferry" },
+      "geometry": { "type": "Point", "coordinates": [28.9889, 41.0255] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Beşiktaş Ferry Terminal", "icon": "ferry" },
+      "geometry": { "type": "Point", "coordinates": [29.0093, 41.0424] }
+    }
+  ]
+}

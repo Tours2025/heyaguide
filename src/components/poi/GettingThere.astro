@@ -1,0 +1,126 @@
+---
+import DistanceBadge from './DistanceBadge.astro';
+
+interface Props {
+  coords: { lat: number; lng: number };
+  transitFromHeya: string;
+  address: string;
+}
+
+const { coords, transitFromHeya, address } = Astro.props;
+
+// Build Google Maps directions URL
+const heyaStr = '41.0379,28.9847';
+const destStr = `${coords.lat},${coords.lng}`;
+const gmapsUrl = `https://www.google.com/maps/dir/${heyaStr}/${destStr}/data=!3m1!4b1!4m14!4m13!1m5!1m1!1s0x14cababbc4f06e9f:0x4a5b5e5e5e5e5e5e!2m2!1d28.9847!2d41.0379!1m5!1m1!1s0x0:0x0!2m2!1d${coords.lng}!2d${coords.lat}!3e2`;
+---
+
+<aside class="getting-there">
+  <h3 class="gt-heading">Getting there</h3>
+
+  <div class="gt-row">
+    <span class="gt-label">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="13" cy="4" r="2"/>
+        <path d="M7 22l3-7 4-2-2-5 3-1 2 5 3 1"/>
+      </svg>
+      From Heya
+    </span>
+    <DistanceBadge coords={coords} />
+  </div>
+
+  <div class="gt-row">
+    <span class="gt-label">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="4" y="4" width="16" height="14" rx="2"/>
+        <path d="M4 11h16M9 4v14M15 4v14"/>
+      </svg>
+      By transit
+    </span>
+    <span class="gt-value">{transitFromHeya}</span>
+  </div>
+
+  <div class="gt-row">
+    <span class="gt-label">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 2C8 2 5 5 5 9c0 6 7 13 7 13s7-7 7-13c0-4-3-7-7-7z"/>
+        <circle cx="12" cy="9" r="2.5"/>
+      </svg>
+      Address
+    </span>
+    <span class="gt-value">{address}</span>
+  </div>
+
+  <a class="gt-cta" href={gmapsUrl} target="_blank" rel="noopener">
+    Open in Google Maps
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M7 17L17 7M7 7h10v10"/>
+    </svg>
+  </a>
+</aside>
+
+<style>
+  .getting-there {
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-bg-muted);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+  }
+
+  .gt-heading {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    margin: 0 0 var(--space-4);
+    color: var(--color-ink);
+  }
+
+  .gt-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-4);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--color-bg-muted);
+  }
+
+  .gt-row:last-of-type {
+    border-bottom: none;
+  }
+
+  .gt-label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-ink-muted);
+    font-size: var(--fs-sm);
+    flex-shrink: 0;
+  }
+
+  .gt-value {
+    font-size: var(--fs-sm);
+    color: var(--color-ink);
+    text-align: right;
+    line-height: var(--lh-snug);
+  }
+
+  .gt-cta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-brand);
+    color: var(--color-ink-on-dark);
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    font-size: var(--fs-sm);
+    text-decoration: none;
+    transition: background var(--dur-fast) var(--ease-out);
+  }
+
+  .gt-cta:hover {
+    background: var(--color-brand-strong);
+    color: var(--color-ink-on-dark);
+  }
+</style>

@@ -1,0 +1,7 @@
+name = "heyaguide"
+compatibility_date = "2025-01-01"
+pages_build_output_dir = "./dist"
+
+# Cloudflare Pages is configured via the Cloudflare dashboard.
+# This file exists so Wrangler CLI can run `wrangler pages deploy dist`.
+# CI: connect the GitHub repo to Cloudflare Pages; auto-deploy on push to main.

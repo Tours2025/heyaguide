@@ -1,0 +1,18 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "F1 Funicular (Taksim–Kabataş)", "color": "#8c4a8e" },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [28.9847, 41.0379],
+          [28.9870, 41.0340],
+          [28.9906, 41.0299],
+          [28.9933, 41.0276]
+        ]
+      }
+    }
+  ]
+}

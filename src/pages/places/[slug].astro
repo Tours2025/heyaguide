@@ -1,0 +1,351 @@
+---
+import { getCollection, render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import StatusBadge from '../../components/poi/StatusBadge.astro';
+import HoursTable from '../../components/poi/HoursTable.astro';
+import Gallery from '../../components/poi/Gallery.astro';
+import GettingThere from '../../components/poi/GettingThere.astro';
+import { CATEGORY_LABELS, categoryColor } from '../../lib/data';
+
+export const getStaticPaths = (async () => {
+  const pois = await getCollection('places');
+  return pois.map((poi) => ({
+    params: { slug: poi.data.slug },
+    props: { poi },
+  }));
+}) satisfies GetStaticPaths;
+
+const { poi } = Astro.props;
+const { Content } = await render(poi);
+const {
+  slug,
+  name,
+  category,
+  shortDescription,
+  longDescription,
+  address,
+  coordinates,
+  hours,
+  admission,
+  walkFromHeya,
+  transitFromHeya,
+  tags,
+  images,
+  imageCredits,
+} = poi.data;
+
+// Split longDescription into paragraphs (split on blank lines)
+const paragraphs = longDescription.trim().split(/\n\s*\n/);
+
+const catColor = categoryColor(category);
+const catLabel = CATEGORY_LABELS[category];
+---
+
+<BaseLayout
+  title={name}
+  description={shortDescription}
+  ogImage={`/places/${poi.data.slug}/${images.hero}`}
+  bodyClass="poi-page"
+>
+  <article class="poi-article">
+    <header class="poi-hero">
+      <div class="poi-hero-bg">
+        <img
+          src={`/places/${slug}/${images.hero}`}
+          alt=""
+          aria-hidden="true"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+        <div class="poi-hero-veil"></div>
+      </div>
+
+      <div class="container poi-hero-inner">
+        <a href="/" class="back-link">← HeyaGuide</a>
+        <span class="cat-pill" style={`background:${catColor};`}>{catLabel}</span>
+        <h1 class="poi-title">{name}</h1>
+        <p class="poi-tagline">{shortDescription}</p>
+        <div class="poi-status">
+          <StatusBadge hours={hours} />
+        </div>
+      </div>
+    </header>
+
+    <div class="container poi-body">
+      <div class="poi-main">
+        <section class="poi-section">
+          <h2 class="poi-h2">About</h2>
+          <div class="prose">
+            {paragraphs.map((p) => <p>{p}</p>)}
+            <slot />
+          </div>
+        </section>
+
+        {images.gallery.length > 0 && (
+          <section class="poi-section">
+            <h2 class="poi-h2">Photos</h2>
+            <Gallery slug={poi.data.slug} images={images.gallery} />
+          </section>
+        )}
+
+        <section class="poi-section">
+          <h2 class="poi-h2">Photo credits</h2>
+          <ul class="credits">
+            {imageCredits.map((c) => (
+              <li>
+                <strong>{c.file}</strong> by{' '}
+                <a href={c.url} target="_blank" rel="noopener">{c.author}</a>{' '}
+                ({c.source}, {c.license})
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+
+      <aside class="poi-aside">
+        <section>
+          <h2 class="poi-h3">Opening hours</h2>
+          <HoursTable hours={hours} />
+        </section>
+
+        <section>
+          <h2 class="poi-h3">Admission</h2>
+          <div class="admission">
+            <div class="admission-price">
+              {admission.foreigner === 0 ? (
+                <span class="price-free">Free</span>
+              ) : (
+                <>
+                  <span class="price-amount">{admission.foreigner}</span>
+                  <span class="price-currency">{admission.currency}</span>
+                </>
+              )}
+              <span class="price-label">foreigner</span>
+            </div>
+            {admission.notes && <p class="admission-notes">{admission.notes}</p>}
+          </div>
+        </section>
+
+        <GettingThere
+          coords={coordinates}
+          transitFromHeya={transitFromHeya}
+          address={address}
+        />
+
+        {tags.length > 0 && (
+          <section>
+            <h2 class="poi-h3">Tags</h2>
+            <div class="tags">
+              {tags.map((t) => (
+                <span class="tag">#{t}</span>
+              ))}
+            </div>
+          </section>
+        )}
+      </aside>
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .poi-hero {
+    position: relative;
+    min-height: 70vh;
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: var(--space-7);
+    color: var(--color-ink-on-dark);
+    overflow: hidden;
+  }
+
+  .poi-hero-bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  .poi-hero-bg img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .poi-hero-veil {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0) 30%),
+      linear-gradient(0deg, rgba(20,34,46,0.92) 0%, rgba(20,34,46,0.45) 60%, rgba(20,34,46,0.25) 100%);
+  }
+
+  .poi-hero-inner {
+    position: relative;
+    z-index: 1;
+    padding-top: calc(var(--header-height) + var(--space-6));
+  }
+
+  .back-link {
+    color: var(--color-ink-on-dark);
+    font-size: var(--fs-sm);
+    margin-bottom: var(--space-4);
+    display: inline-block;
+    opacity: 0.8;
+    text-decoration: none;
+  }
+
+  .back-link:hover { color: var(--color-accent); opacity: 1; }
+
+  .cat-pill {
+    display: inline-block;
+    color: white;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    margin-bottom: var(--space-4);
+  }
+
+  .poi-title {
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    color: var(--color-ink-on-dark);
+    margin: 0 0 var(--space-3);
+    line-height: 1;
+    max-width: 18ch;
+  }
+
+  .poi-tagline {
+    font-size: var(--fs-md);
+    color: var(--color-ink-on-dark-muted);
+    max-width: 60ch;
+    margin: 0 0 var(--space-5);
+  }
+
+  .poi-status { display: inline-flex; }
+
+  .poi-body {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: var(--space-8);
+    padding-top: var(--space-8);
+    padding-bottom: var(--space-8);
+  }
+
+  .poi-main {
+    min-width: 0;
+  }
+
+  .poi-aside {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+
+  .poi-h2 {
+    font-size: var(--fs-2xl);
+    margin: 0 0 var(--space-5);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--color-bg-muted);
+  }
+
+  .poi-h3 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    margin: 0 0 var(--space-4);
+    color: var(--color-ink);
+  }
+
+  .credits {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: var(--fs-sm);
+    color: var(--color-ink-muted);
+  }
+
+  .credits li {
+    padding: var(--space-2) 0;
+    border-bottom: 1px dashed var(--color-bg-muted);
+  }
+
+  .credits li:last-child { border-bottom: none; }
+  .credits strong { color: var(--color-ink); font-weight: 500; }
+
+  .admission {
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--color-bg-muted);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+  }
+
+  .admission-price {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+  }
+
+  .price-amount {
+    font-family: var(--font-display);
+    font-size: var(--fs-3xl);
+    color: var(--color-brand);
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .price-currency {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    color: var(--color-ink-muted);
+    font-weight: 500;
+  }
+
+  .price-free {
+    font-family: var(--font-display);
+    font-size: var(--fs-3xl);
+    color: var(--color-success);
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  .price-label {
+    font-size: var(--fs-xs);
+    color: var(--color-ink-muted);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    margin-left: auto;
+  }
+
+  .admission-notes {
+    font-size: var(--fs-sm);
+    color: var(--color-ink-muted);
+    line-height: var(--lh-loose);
+    margin: var(--space-3) 0 0;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+  }
+
+  .tag {
+    font-size: var(--fs-xs);
+    padding: 4px 10px;
+    background: var(--color-bg-muted);
+    color: var(--color-ink-muted);
+    border-radius: var(--radius-pill);
+  }
+
+  @media (max-width: 880px) {
+    .poi-body {
+      grid-template-columns: 1fr;
+      gap: var(--space-6);
+    }
+
+    .poi-hero { min-height: 50vh; }
+  }
+</style>

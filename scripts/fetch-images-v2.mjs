@@ -133,7 +133,7 @@ for (const f of files) {
     }
 
     // Polite delay
-    await new Promise((r) => setTimeout(r, 2000));
+    await new Promise((r) => setTimeout(r, 6000));
   }
 }
 

@@ -1,1 +1,0 @@
-pe-self-test

@@ -7,6 +7,7 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   site: 'https://guide.hotelheya.com',
   output: 'static',
+  trailingSlash: 'never',
   integrations: [react(), mdx(), sitemap()],
   image: {
     service: { entrypoint: 'astro/assets/services/sharp' },

@@ -132,8 +132,8 @@ for (const f of files) {
       failed++;
     }
 
-    // Polite delay
-    await new Promise((r) => setTimeout(r, 6000));
+    // Polite delay (longer to avoid Wikimedia rate limits)
+    await new Promise((r) => setTimeout(r, 10000));
   }
 }
 

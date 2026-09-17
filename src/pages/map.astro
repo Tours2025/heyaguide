@@ -52,8 +52,11 @@ const poisForMap = allPois.map((p) => ({
 <style is:global>
   .map-page main { padding-top: 0; }
 
+  /* Map header sits below the fixed site header. The site header is
+     position:fixed with height var(--header-height) (72px), so the
+     map page content needs top padding to clear it. */
   .map-header {
-    padding: var(--space-8) 0 var(--space-5);
+    padding: calc(var(--header-height) + var(--space-4)) 0 var(--space-5);
     background: var(--color-bg-elevated);
     border-bottom: 1px solid var(--color-bg-muted);
   }
@@ -78,8 +81,8 @@ const poisForMap = allPois.map((p) => ({
 
   .map-shell {
     position: relative;
-    height: calc(100dvh - var(--header-height) - 220px);
-    min-height: 480px;
+    height: calc(100dvh - var(--header-height) - 80px);
+    min-height: 380px;
     width: 100%;
   }
 
@@ -335,39 +338,27 @@ const poisForMap = allPois.map((p) => ({
     color: var(--color-ink-muted);
   }
 
-  /* POI / ferry info card — bottom sheet on mobile, side panel on desktop.
-     Replaces the old MapLibre popups (which got blocked by the legend). */
+  /* POI / ferry info card — sits in the document flow under the legend.
+     On mobile this is a stacked section below the map so it never blocks
+     pinch/pan gestures. On desktop the map shrinks and the card appears
+     to the right of the map. */
   .poi-info-card {
-    position: fixed;
-    z-index: 50;
     background: var(--color-bg-elevated);
-    box-shadow: 0 -8px 32px rgba(20, 34, 46, 0.18);
-    padding: var(--space-4) var(--space-5) var(--space-5);
-    max-height: 70dvh;
-    overflow-y: auto;
-    -webkit-overflow-scrolling: touch;
-    animation: poi-card-slide-up 280ms var(--ease-out);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4) var(--space-5);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--line);
+    margin: var(--space-3) var(--space-3) var(--space-5);
+    animation: poi-card-fade-in 220ms var(--ease-out);
   }
 
-  @keyframes poi-card-slide-up {
-    from { transform: translateY(100%); }
-    to { transform: translateY(0); }
-  }
-
-  /* Mobile-first: bottom sheet pinned to the bottom */
-  .poi-info-card {
-    left: 0;
-    right: 0;
-    bottom: 0;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  @keyframes poi-card-fade-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
   .poi-info-card-handle {
-    width: 36px;
-    height: 4px;
-    background: var(--color-line);
-    border-radius: 2px;
-    margin: 0 auto var(--space-3);
+    display: none; /* no handle — card is in normal flow, not a sheet */
   }
 
   .poi-info-card-close {
@@ -387,6 +378,10 @@ const poisForMap = allPois.map((p) => ({
     align-items: center;
     justify-content: center;
     transition: background var(--dur-fast) var(--ease-out);
+  }
+
+  .poi-info-card {
+    position: relative;
   }
 
   .poi-info-card-close:hover {
@@ -485,24 +480,32 @@ const poisForMap = allPois.map((p) => ({
     background: var(--color-brand-dark, #154e66);
   }
 
-  /* Desktop: side panel on the right instead of bottom sheet */
-  @media (min-width: 721px) {
-    .poi-info-card {
-      left: auto;
-      right: var(--space-4);
-      bottom: var(--space-4);
-      top: var(--space-4);
-      max-width: 380px;
-      max-height: none;
-      border-radius: var(--radius-lg);
-      animation: poi-card-slide-left 280ms var(--ease-out);
+  /* Desktop: 2-column layout — map fills more space, card sits below
+     the map (in normal flow). On wide screens, the map can be narrower
+     so the card has room beside it. */
+  @media (min-width: 1100px) {
+    .map-layout {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: var(--space-4);
+      align-items: start;
     }
-    @keyframes poi-card-slide-left {
-      from { transform: translateX(120%); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
+    .map-shell {
+      height: calc(100dvh - var(--header-height) - 80px);
+      min-height: 540px;
     }
-    .poi-info-card-handle {
+    /* On desktop, the floating legend is used; the below-map legend
+       would just be redundant empty space. */
+    .map-controls--below {
       display: none;
+    }
+    /* Card sits in the second column beside the map */
+    .poi-info-card {
+      margin: 0;
+      position: sticky;
+      top: calc(var(--header-height) + var(--space-4));
+      max-height: calc(100dvh - var(--header-height) - var(--space-6));
+      overflow-y: auto;
     }
   }
 
@@ -533,8 +536,8 @@ const poisForMap = allPois.map((p) => ({
        mobile legend block that lives in normal flow below the map. This
        way the legend never blocks pinch/pan gestures on the map. */
     .map-shell {
-      height: calc(100dvh - var(--header-height) - 220px);
-      min-height: 420px;
+      height: calc(100dvh - var(--header-height) - 60px);
+      min-height: 360px;
     }
 
     .map-controls--floating {

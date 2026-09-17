@@ -175,19 +175,22 @@ export default function MapView({
 
       // Transit and ferry overlays removed — user requested no public transportation overlay.
 
-      // Heya pin (DOM marker — easier to style with custom HTML)
+      // Heya pin — single gold SVG teardrop. Anchor: 'bottom' puts the pin's
+      // tip at the exact geo-coordinate so the marker stays put on the map.
+      // No floating label, no pulse — those visual elements used `position:
+      // absolute` with computed offsets that caused them to drift visually
+      // during pinch-zoom on touch devices, making the pin look unstable.
+      // The legend in the corner already tells the user what the gold H is.
       const heyaEl = document.createElement('div');
       heyaEl.className = 'heya-marker';
       heyaEl.innerHTML = `
-        <div class="heya-pulse"></div>
-        <div class="heya-pin">
-          <svg viewBox="0 0 32 40" width="32" height="40" aria-hidden="true">
-            <path d="M16 2 C 8 2 2 8 2 16 C 2 26 16 38 16 38 C 16 38 30 26 30 16 C 30 8 24 2 16 2 Z" fill="#c5a059" stroke="#163946" stroke-width="2"/>
-            <text x="16" y="20" text-anchor="middle" fill="#163946" font-size="11" font-weight="700" font-family="serif">H</text>
-          </svg>
-          <div class="heya-label">Heya Hotel · You are here</div>
-        </div>`;
-      new maplibregl.Marker({ element: heyaEl, anchor: 'bottom' })
+        <svg viewBox="0 0 32 40" width="32" height="40" aria-label="Heya Hotel">
+          <path d="M16 2 C 8 2 2 8 2 16 C 2 26 16 38 16 38 C 16 38 30 26 30 16 C 30 8 24 2 16 2 Z"
+                fill="#c5a059" stroke="#163946" stroke-width="2"/>
+          <text x="16" y="21" text-anchor="middle" fill="#163946"
+                font-size="13" font-weight="700" font-family="serif">H</text>
+        </svg>`;
+      new maplibregl.Marker({ element: heyaEl, anchor: 'bottom', offset: [0, 2] })
         .setLngLat([HEYA_COORDINATES.lng, HEYA_COORDINATES.lat])
         .addTo(map);
 

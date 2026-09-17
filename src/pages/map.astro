@@ -184,47 +184,16 @@ const poisForMap = allPois.map((p) => ({
     accent-color: var(--color-brand);
   }
 
-  /* Heya pin animation */
+  /* Heya pin — a single gold teardrop with the H glyph. The marker is
+     positioned by MapLibre at the exact geo-coordinate, so this just
+     styles the SVG inside the marker element. */
   .heya-marker {
-    position: relative;
     cursor: default;
+    line-height: 0;
   }
-
-  .heya-pulse {
-    position: absolute;
-    width: 32px;
-    height: 32px;
-    bottom: 0;
-    left: 0;
-    border-radius: 50%;
-    background: rgba(197, 160, 89, 0.4);
-    transform: translate(-50%, 0);
-    animation: heya-pulse 2.4s var(--ease-in-out) infinite;
-  }
-
-  @keyframes heya-pulse {
-    0% { transform: translate(-50%, 0) scale(0.6); opacity: 0.8; }
-    100% { transform: translate(-50%, 0) scale(2.4); opacity: 0; }
-  }
-
-  .heya-pin {
-    position: relative;
-    transform: translate(-50%, -100%);
-  }
-
-  .heya-label {
-    position: absolute;
-    top: -28px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--color-surface-dark);
-    color: var(--color-ink-on-dark);
-    padding: 4px 10px;
-    border-radius: var(--radius-pill);
-    font-size: var(--fs-xs);
-    font-weight: 600;
-    white-space: nowrap;
-    box-shadow: var(--shadow-md);
+  .heya-marker svg {
+    display: block;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.35));
   }
 
   /* Popup styling */

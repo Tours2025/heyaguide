@@ -1,0 +1,319 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ferries from '../data/ferries.json';
+
+const groups: Record<string, typeof ferries.stations> = {
+  European: [],
+  Asian: [],
+  Adalar: [],
+};
+for (const s of ferries.stations) {
+  if (groups[s.side]) groups[s.side].push(s);
+}
+
+const sideLabels: Record<string, string> = {
+  European: 'European side',
+  Asian: 'Asian side',
+  Adalar: 'Princes\u2019 Islands',
+};
+---
+<BaseLayout
+  title="Ferries · HeyaGuide"
+  description="Istanbul ferry stations, destinations and schedules — Adalar (Princes' Islands), Bosphorus line, and cross-Bosphorus hops."
+>
+  <div class="container ferries-page">
+    <header class="ferries-header">
+      <p class="eyebrow">Getting around</p>
+      <h1>Ferries from Heya, and across the Bosphorus.</h1>
+      <p class="ferries-lead">
+        Ferries are often the fastest — and most pleasant — way to move around Istanbul.
+        Below is a practical map of the main terminals, where each one goes, and the
+        general schedule and ticket info for each route. Schedules change by season;
+        always check the day-of at <a href="https://www.sehirhatlari.istanbul" target="_blank" rel="noopener">sehirhatlari.istanbul</a>.
+      </p>
+    </header>
+
+    {Object.entries(groups).map(([side, stations]) => (
+      <section class="ferries-section">
+        <h2 class="ferries-section-title">{sideLabels[side] ?? side}</h2>
+        <div class="ferries-grid">
+          {stations.map((s) => (
+            <article class="ferry-card" id={s.id}>
+              <header class="ferry-card-header">
+                <h3>{s.name}</h3>
+                <span class="ferry-card-local">{s.nameLocal}</span>
+              </header>
+              <p class="ferry-card-note">{s.note}</p>
+              <div class="ferry-card-coords">
+                <span class="coord-label">Coordinates</span>
+                <code>{s.coordinates.lat.toFixed(4)}, {s.coordinates.lng.toFixed(4)}</code>
+              </div>
+              <h4>Destinations</h4>
+              <ul class="ferry-destinations">
+                {s.destinations.map((d) => (
+                  <li class="ferry-destination">
+                    <div class="dest-name">{d.name}</div>
+                    <dl class="dest-details">
+                      <div class="dest-detail">
+                        <dt>Operator</dt>
+                        <dd>{d.operators.join(' · ')}</dd>
+                      </div>
+                      <div class="dest-detail">
+                        <dt>Duration</dt>
+                        <dd>{d.duration}</dd>
+                      </div>
+                      <div class="dest-detail">
+                        <dt>Frequency</dt>
+                        <dd>{d.frequency}</dd>
+                      </div>
+                      <div class="dest-detail">
+                        <dt>Ticket</dt>
+                        <dd>{d.ticket}</dd>
+                      </div>
+                      {d.tip && (
+                        <div class="dest-detail dest-tip">
+                          <dt>Tip</dt>
+                          <dd>{d.tip}</dd>
+                        </div>
+                      )}
+                    </dl>
+                  </li>
+                ))}
+              </ul>
+            </article>
+          ))}
+        </div>
+      </section>
+    ))}
+
+    <section class="ferries-notes">
+      <h2>General notes</h2>
+      <ul>
+        {ferries.notes.map((n) => <li>{n}</li>)}
+      </ul>
+    </section>
+
+    <section class="ferries-cta">
+      <p>Looking for the islands themselves? <a href="/places/buyukada">Büyükada</a> · <a href="/places/heybeliada">Heybeliada</a> · <a href="/places/burgazada">Burgazada</a> · or a fortress on the Black Sea: <a href="/places/yoros-castle">Yoros Castle</a></p>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .ferries-page {
+    padding: var(--space-8) 0 var(--space-9);
+  }
+
+  .ferries-header {
+    max-width: 720px;
+    margin: 0 auto var(--space-8);
+    text-align: center;
+  }
+
+  .ferries-header .eyebrow {
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wider);
+    color: var(--color-brand);
+    margin: 0 0 var(--space-3);
+    font-weight: 600;
+  }
+
+  .ferries-header h1 {
+    font-family: var(--font-display);
+    font-size: clamp(2rem, 5vw, 3rem);
+    margin: 0 0 var(--space-4);
+    line-height: 1.1;
+  }
+
+  .ferries-lead {
+    font-size: var(--fs-md);
+    color: var(--color-ink-muted);
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .ferries-lead a {
+    color: var(--color-brand);
+  }
+
+  .ferries-section {
+    margin: 0 0 var(--space-9);
+  }
+
+  .ferries-section-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    margin: 0 0 var(--space-5);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .ferries-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: var(--space-5);
+  }
+
+  .ferry-card {
+    background: var(--color-bg-elevated);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--line);
+  }
+
+  .ferry-card-header {
+    margin-bottom: var(--space-3);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .ferry-card-header h3 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    margin: 0 0 4px;
+    color: var(--color-ink);
+  }
+
+  .ferry-card-local {
+    font-size: var(--fs-sm);
+    color: var(--color-ink-muted);
+    font-style: italic;
+  }
+
+  .ferry-card-note {
+    font-size: var(--fs-sm);
+    color: var(--color-ink);
+    line-height: 1.5;
+    margin: 0 0 var(--space-3);
+  }
+
+  .ferry-card-coords {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: var(--fs-xs);
+    margin: 0 0 var(--space-4);
+    color: var(--color-ink-muted);
+  }
+
+  .coord-label {
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wider);
+    font-weight: 600;
+  }
+
+  .ferry-card-coords code {
+    font-family: ui-monospace, SFMono-Regular, monospace;
+    background: var(--color-bg-muted);
+    padding: 2px 6px;
+    border-radius: 4px;
+  }
+
+  .ferry-card h4 {
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wider);
+    color: var(--color-ink-muted);
+    margin: 0 0 var(--space-2);
+    font-weight: 600;
+  }
+
+  .ferry-destinations {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+  }
+
+  .ferry-destination {
+    background: var(--color-bg);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .dest-name {
+    font-weight: 600;
+    color: var(--color-brand);
+    margin: 0 0 var(--space-2);
+    font-size: var(--fs-sm);
+  }
+
+  .dest-details {
+    margin: 0;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 4px var(--space-3);
+    font-size: var(--fs-xs);
+  }
+
+  .dest-detail {
+    display: contents;
+  }
+
+  .dest-detail dt {
+    color: var(--color-ink-muted);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wider);
+    font-weight: 600;
+    padding-top: 2px;
+  }
+
+  .dest-detail dd {
+    margin: 0;
+    color: var(--color-ink);
+    line-height: 1.4;
+  }
+
+  .dest-tip dd {
+    color: var(--color-brand);
+    font-style: italic;
+  }
+
+  .ferries-notes {
+    max-width: 720px;
+    margin: 0 auto var(--space-8);
+    padding: var(--space-5);
+    background: var(--color-bg-muted);
+    border-radius: var(--radius-lg);
+  }
+
+  .ferries-notes h2 {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    margin: 0 0 var(--space-3);
+  }
+
+  .ferries-notes ul {
+    margin: 0;
+    padding-left: var(--space-4);
+    color: var(--color-ink);
+    line-height: 1.6;
+    font-size: var(--fs-sm);
+  }
+
+  .ferries-notes li {
+    margin-bottom: var(--space-2);
+  }
+
+  .ferries-cta {
+    text-align: center;
+    padding: var(--space-5);
+    border-top: 1px solid var(--line);
+  }
+
+  .ferries-cta a {
+    color: var(--color-brand);
+    font-weight: 600;
+  }
+
+  @media (max-width: 720px) {
+    .ferries-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

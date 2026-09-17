@@ -5,6 +5,7 @@ import { MAP_STYLE } from '../../lib/mapStyle';
 import { HEYA_COORDINATES } from '../../lib/distance';
 import { todayStatus } from '../../lib/hours';
 import type { POI } from '../../lib/data';
+import ferries from '../../data/ferries.json';
 
 interface Props {
   pois: POI[];
@@ -145,7 +146,86 @@ export default function MapView({
       // need a glyphs endpoint for text fonts, and we don't ship one. The
       // popup that opens on click shows the name; that's enough.)
 
-      // Transit and ferry overlays removed — user requested no public transportation overlay.
+      // Ferry stations — anchor/ship icons so guests can see where ferries leave from.
+      // Renders as small navy circles; clicking opens a popup with the destinations.
+      const ferryFeatures = ferries.stations.map((s) => ({
+        type: 'Feature' as const,
+        properties: {
+          id: s.id,
+          name: s.name,
+          side: s.side,
+          note: s.note,
+          destSummary: s.destinations.map((d) => d.name).join(' · '),
+          destCount: s.destinations.length,
+        },
+        geometry: { type: 'Point' as const, coordinates: [s.coordinates.lng, s.coordinates.lat] },
+      }));
+      map.addSource('ferry-stations', {
+        type: 'geojson',
+        data: { type: 'FeatureCollection', features: ferryFeatures as any },
+      });
+      map.addLayer({
+        id: 'ferry-circle',
+        type: 'circle',
+        source: 'ferry-stations',
+        paint: {
+          'circle-color': '#163946',
+          'circle-radius': 5,
+          'circle-stroke-color': '#c5a059',
+          'circle-stroke-width': 2,
+        },
+      });
+
+      // Click ferry → popup with destinations
+      map.on('click', 'ferry-circle', (e) => {
+        const feature = e.features?.[0];
+        if (!feature || feature.geometry.type !== 'Point') return;
+        const coords = (feature.geometry as any).coordinates.slice() as [number, number];
+        const props = feature.properties as any;
+        const station = ferries.stations.find((s) => s.id === props.id);
+        if (!station) return;
+        const destsHtml = station.destinations
+          .map(
+            (d) => `
+              <div class="ferry-popup-dest">
+                <div class="ferry-popup-dest-name">${escapeHtml(d.name)}</div>
+                <div class="ferry-popup-dest-meta">
+                  <span>${escapeHtml(d.operators.join(' · '))}</span> ·
+                  <span>${escapeHtml(d.duration)}</span>
+                </div>
+              </div>`,
+          )
+          .join('');
+        const html = `
+          <article class="map-popup ferry-popup">
+            <h3 class="popup-title">${escapeHtml(props.name)}</h3>
+            <span class="popup-status">${escapeHtml(props.side)} side</span>
+            <div class="ferry-popup-note">${escapeHtml(props.note)}</div>
+            <h4 class="ferry-popup-heading">Where it goes</h4>
+            ${destsHtml}
+            <a class="popup-cta" href="/ferries/#${escapeHtml(props.id)}">See full schedule →</a>
+          </article>
+        `;
+        if (popupRef.current) popupRef.current.remove();
+        popupRef.current = new maplibregl.Popup({
+          offset: 14,
+          closeButton: true,
+          maxWidth: '320px',
+          className: 'maplibreg-custom-popup',
+        })
+          .setLngLat(coords)
+          .setHTML(html)
+          .addTo(map);
+        if (onPlaceOpened) onPlaceOpened(`ferry-${props.id}`);
+      });
+      map.on('mouseenter', 'ferry-circle', () => {
+        map.getCanvas().style.cursor = 'pointer';
+      });
+      map.on('mouseleave', 'ferry-circle', () => {
+        map.getCanvas().style.cursor = '';
+      });
+
+      // Transit lines removed — user requested no public transportation overlay.
 
       // Heya pin — single gold SVG teardrop. Anchor: 'bottom' puts the pin's
       // tip at the exact geo-coordinate so the marker stays put on the map.
@@ -278,6 +358,10 @@ export default function MapView({
                 <span className="legend-simple-dot legend-simple-dot--heya" />
                 <span>Heya Hotel</span>
               </div>
+              <div className="legend-row">
+                <span className="legend-simple-dot legend-simple-dot--ferry" />
+                <span>Ferry terminal</span>
+              </div>
             </div>
             <div className="toggles-row" style={{ marginTop: 'var(--space-3)', paddingTop: 'var(--space-3)', borderTop: '1px solid var(--line)' }}>
               <label className="switch">
@@ -289,6 +373,7 @@ export default function MapView({
                 <span>Walk rings</span>
               </label>
             </div>
+            <a className="legend-ferry-link" href="/ferries/">All ferries & schedules →</a>
           </div>
         </div>
       </div>
@@ -304,6 +389,11 @@ export default function MapView({
               <span className="legend-simple-dot legend-simple-dot--heya" />
               <span>Heya Hotel</span>
             </div>
+            <div className="legend-row">
+              <span className="legend-simple-dot legend-simple-dot--ferry" />
+              <span>Ferry</span>
+            </div>
+            <a className="legend-ferry-link" href="/ferries/">Ferries & schedules →</a>
             <label className="switch switch--inline">
               <input
                 type="checkbox"

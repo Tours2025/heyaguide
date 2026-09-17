@@ -194,6 +194,58 @@ const poisForMap = allPois.map((p) => ({
     accent-color: var(--color-brand);
   }
 
+  /* Legend — used by both the floating desktop card and the mobile bar below */
+  .legend-simple {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+
+  .legend-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: var(--fs-sm);
+    color: var(--color-ink);
+  }
+
+  .legend-simple-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 1px rgba(20, 34, 46, 0.18);
+  }
+
+  .legend-simple-dot--poi {
+    background: #1e6b8a;
+    border-color: #fff;
+  }
+
+  .legend-simple-dot--heya {
+    background: #c5a059;
+    border-color: #163946;
+  }
+
+  .legend-simple-dot--ferry {
+    background: #163946;
+    border-color: #c5a059;
+  }
+
+  .legend-ferry-link {
+    display: inline-block;
+    margin-top: var(--space-3);
+    font-size: var(--fs-xs);
+    color: var(--color-brand);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .legend-ferry-link:hover {
+    text-decoration: underline;
+  }
+
   /* Heya pin — a single gold teardrop with the H glyph. The marker is
      positioned by MapLibre at the exact geo-coordinate, so this just
      styles the SVG inside the marker element. */
@@ -246,6 +298,41 @@ const poisForMap = allPois.map((p) => ({
     width: 8px;
     height: 8px;
     border-radius: 50%;
+  }
+
+  /* Ferry popup */
+  .ferry-popup-note {
+    font-size: var(--fs-sm);
+    color: var(--color-ink-muted);
+    margin: 0 0 var(--space-3);
+    line-height: 1.5;
+  }
+
+  .ferry-popup-heading {
+    font-family: var(--font-sans);
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wider);
+    color: var(--color-ink-muted);
+    margin: 0 0 var(--space-2);
+    font-weight: 600;
+  }
+
+  .ferry-popup-dest {
+    padding: var(--space-2) 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .ferry-popup-dest-name {
+    font-weight: 600;
+    color: var(--color-ink);
+    font-size: var(--fs-sm);
+    margin-bottom: 2px;
+  }
+
+  .ferry-popup-dest-meta {
+    font-size: var(--fs-xs);
+    color: var(--color-ink-muted);
   }
 
   .map-popup .popup-desc {

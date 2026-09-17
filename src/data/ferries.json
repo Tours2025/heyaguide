@@ -1,0 +1,247 @@
+{
+  "stations": [
+    {
+      "id": "kabatas",
+      "name": "Kabataş Ferry Terminal",
+      "nameLocal": "Kabataş İskelesi",
+      "side": "European",
+      "coordinates": { "lat": 41.0329, "lng": 28.9942 },
+      "address": "Meclis-i Mebusan Cd., Kabataş, Beyoğlu",
+      "note": "The main European-side ferry terminal — directly reachable from Heya via F1 funicular + tram (about 12 min).",
+      "destinations": [
+        {
+          "name": "Adalar (Büyükada · Heybeliada · Burgazada · Kınalıada)",
+          "operators": ["Şehir Hatları", "BUDO", "TURYOL"],
+          "duration": "75–105 min (BUDO/Şehir Hatları fast ferries ~75 min, classic ferries ~95 min)",
+          "frequency": "Ferries every 1–2 hours, daily ~07:00–22:00 (Şehir Hatları). BUDO and TURYOL add fast-ferry sailings in summer.",
+          "ticket": "Istanbulkart (~₺60–80 with card, more at the booth). BUDO ferries are ticketed separately.",
+          "tip": "Buy Istanbulkart at any kiosk (₺200 refundable deposit) and load credit. Lines form 15 min before departure."
+        }
+      ]
+    },
+    {
+      "id": "eminonu",
+      "name": "Eminönü Ferry Terminal",
+      "nameLocal": "Eminönü İskelesi",
+      "side": "European",
+      "coordinates": { "lat": 41.0171, "lng": 28.9755 },
+      "address": "Reşadiye Cd., Eminönü, Fatih",
+      "note": "Historic ferry hub on the Golden Horn — tram T1 stop. Best for the Bosphorus-line ferry to Anadolu Kavağı (Yoros).",
+      "destinations": [
+        {
+          "name": "Adalar (Büyükada · Heybeliada · Kınalıada · Burgazada)",
+          "operators": ["Şehir Hatları"],
+          "duration": "100–120 min (older, slower ferries — but the classic experience)",
+          "frequency": "5–6 sailings per day, daily ~07:00–21:00 (Şehir Hatları only).",
+          "ticket": "Istanbulkart"
+        },
+        {
+          "name": "Bosphorus line: Anadolu Kavağı (Yoros Castle)",
+          "operators": ["Şehir Hatları"],
+          "duration": "~2 h 15 min one way (with stops at Beşiktaş, Rumeli Kavağı)",
+          "frequency": "1–2 sailings per day each direction, daily in summer (April–October), weekends-only in winter.",
+          "ticket": "Istanbulkart (slightly more than short trips).",
+          "tip": "The Bosphorus line is one of the great urban ferry rides in the world — passes Dolmabahçe, Çırağan, the two Bosphorus bridges, Rumeli Hisarı, and the Bosphorus-Black Sea meeting point."
+        },
+        {
+          "name": "Kadıköy · Üsküdar (Asian side, across the Bosphorus)",
+          "operators": ["Şehir Hatları", "Şehir Hatları Motor"],
+          "duration": "20–35 min",
+          "frequency": "Every 15–30 min, daily 06:00–23:00.",
+          "ticket": "Istanbulkart"
+        }
+      ]
+    },
+    {
+      "id": "besiktas",
+      "name": "Beşiktaş Ferry Terminal",
+      "nameLocal": "Beşiktaş İskelesi",
+      "side": "European",
+      "coordinates": { "lat": 41.0476, "lng": 29.0268 },
+      "address": "İskele Sk., Beşiktaş",
+      "note": "Bosphorus-side terminal — served by the Bosphorus line (toward Yoros) and short hops to Üsküdar.",
+      "destinations": [
+        {
+          "name": "Üsküdar (Asian side)",
+          "operators": ["Şehir Hatları Motor"],
+          "duration": "10–15 min",
+          "frequency": "Every 20–30 min, daily 06:00–22:00.",
+          "ticket": "Istanbulkart"
+        },
+        {
+          "name": "Anadolu Kavağı (Yoros Castle) — Bosphorus line",
+          "operators": ["Şehir Hatları"],
+          "duration": "~1 h 45 min one way from Beşiktaş",
+          "frequency": "1–2 sailings per day in summer (April–October).",
+          "ticket": "Istanbulkart"
+        }
+      ]
+    },
+    {
+      "id": "kadikoy",
+      "name": "Kadıköy Ferry Terminal",
+      "nameLocal": "Kadıköy İskelesi",
+      "side": "Asian",
+      "coordinates": { "lat": 40.9914, "lng": 29.0228 },
+      "address": "Rıhtım Cd., Bahariye, Kadıköy",
+      "note": "The main Asian-side ferry terminal — across from Eminönü. Backs onto the Kadıköy market and Bağdat Avenue.",
+      "destinations": [
+        {
+          "name": "Eminönü (European side, across the Bosphorus)",
+          "operators": ["Şehir Hatları", "Şehir Hatları Motor"],
+          "duration": "20–25 min",
+          "frequency": "Every 15–30 min, daily 06:00–23:00.",
+          "ticket": "Istanbulkart"
+        },
+        {
+          "name": "Karaköy (European side, near Galata)",
+          "operators": ["Şehir Hatları Motor"],
+          "duration": "15 min",
+          "frequency": "Every 15 min, daily 06:00–22:30.",
+          "ticket": "Istanbulkart"
+        }
+      ]
+    },
+    {
+      "id": "uskudar",
+      "name": "Üsküdar Ferry Terminal",
+      "nameLocal": "Üsküdar İskelesi",
+      "side": "Asian",
+      "coordinates": { "lat": 41.0053, "lng": 29.0190 },
+      "address": "Harem İskele Cd., Üsküdar",
+      "note": "Best Asian-side access to the Old City (Eminönü via ferry is faster than metro through the tunnels).",
+      "destinations": [
+        {
+          "name": "Eminönü (European side, across the Bosphorus)",
+          "operators": ["Şehir Hatları Motor"],
+          "duration": "15–20 min",
+          "frequency": "Every 20 min, daily 06:00–22:00.",
+          "ticket": "Istanbulkart"
+        },
+        {
+          "name": "Beşiktaş (European side, along the Bosphorus)",
+          "operators": ["Şehir Hatları Motor"],
+          "duration": "10–15 min",
+          "frequency": "Every 20–30 min, daily 06:00–22:00.",
+          "ticket": "Istanbulkart"
+        },
+        {
+          "name": "Kabataş (European side)",
+          "operators": ["Şehir Hatları Motor"],
+          "duration": "20 min",
+          "frequency": "Every 20 min, daily 06:00–22:00.",
+          "ticket": "Istanbulkart"
+        }
+      ]
+    },
+    {
+      "id": "bostanci",
+      "name": "Bostancı Ferry Terminal",
+      "nameLocal": "Bostancı İskelesi",
+      "side": "Asian",
+      "coordinates": { "lat": 40.9524, "lng": 29.0943 },
+      "address": "Çetin Emeç Blv., Bostancı, Kadıköy",
+      "note": "Asian-side fast-ferry terminal to the islands. Farther out than Kadıköy but the boats are quicker.",
+      "destinations": [
+        {
+          "name": "Adalar (Büyükada · Heybeliada · Kınalıada · Burgazada)",
+          "operators": ["Şehir Hatları", "BUDO"],
+          "duration": "45–60 min (faster than Kabataş, since less of the Bosphorus to cover)",
+          "frequency": "Several daily sailings, mostly spring–autumn. Reduced schedule in winter.",
+          "ticket": "Istanbulkart (Şehir Hatları) or BUDO ticket."
+        }
+      ]
+    },
+    {
+      "id": "anadolu-kavagi",
+      "name": "Anadolu Kavağı Pier",
+      "nameLocal": "Anadolu Kavağı İskelesi",
+      "side": "Asian",
+      "coordinates": { "lat": 41.1742, "lng": 29.0898 },
+      "address": "Anadolu Kavağı, Beykoz",
+      "note": "Terminus of the Bosphorus line, at the Black Sea mouth. Gateway to Yoros Castle (20 min walk uphill).",
+      "destinations": [
+        {
+          "name": "Eminönü · Beşiktaş (return Bosphorus line, European side)",
+          "operators": ["Şehir Hatları"],
+          "duration": "2 h 15 min to Eminönü (with stops)",
+          "frequency": "1–2 return sailings per day, summer schedule (April–October).",
+          "ticket": "Istanbulkart"
+        }
+      ]
+    },
+    {
+      "id": "buyukada",
+      "name": "Büyükada Pier",
+      "nameLocal": "Büyükada İskelesi",
+      "side": "Adalar",
+      "coordinates": { "lat": 40.8749, "lng": 29.1283 },
+      "address": "Büyükada İskele Yolu, Adalar",
+      "note": "Main pier on the largest of the Princes' Islands. Phaeton (horse-carriage) and bicycle rentals here.",
+      "destinations": [
+        {
+          "name": "Kabataş (European side)",
+          "operators": ["Şehir Hatları", "BUDO", "TURYOL"],
+          "duration": "75–105 min",
+          "frequency": "Every 1–2 hours in season.",
+          "ticket": "Istanbulkart or operator ticket"
+        },
+        {
+          "name": "Heybeliada · Burgazada · Kınalıada (inter-island)",
+          "operators": ["Şehir Hatları", "Mavi Marmara"],
+          "duration": "15–30 min between islands",
+          "frequency": "Hourly, daily.",
+          "ticket": "Istanbulkart or token"
+        }
+      ]
+    },
+    {
+      "id": "heybeliada",
+      "name": "Heybeliada Pier",
+      "nameLocal": "Heybeliada İskelesi",
+      "side": "Adalar",
+      "coordinates": { "lat": 40.8757, "lng": 29.0921 },
+      "address": "Heybeliada, Adalar",
+      "note": "Main pier on the greenest of the islands, with views of Halki Theological School across the bay.",
+      "destinations": [
+        {
+          "name": "Büyükada · Burgazada · Kınalıada",
+          "operators": ["Şehir Hatları", "Mavi Marmara"],
+          "duration": "10–20 min between islands",
+          "frequency": "Hourly, daily.",
+          "ticket": "Istanbulkart or token"
+        },
+        {
+          "name": "Kabataş (European side)",
+          "operators": ["Şehir Hatları", "BUDO"],
+          "duration": "85–110 min",
+          "frequency": "Several daily sailings.",
+          "ticket": "Istanbulkart or operator ticket"
+        }
+      ]
+    },
+    {
+      "id": "burgazada",
+      "name": "Burgazada Pier",
+      "nameLocal": "Burgazada İskelesi",
+      "side": "Adalar",
+      "coordinates": { "lat": 40.8815, "lng": 29.0691 },
+      "address": "Gezinti Cd., Burgazada, Adalar",
+      "note": "Smallest pier of the four main islands — quiet, with a calm waterfront and Sait Faik's house up the hill.",
+      "destinations": [
+        {
+          "name": "Heybeliada · Büyükada · Kınalıada",
+          "operators": ["Şehir Hatları", "Mavi Marmara"],
+          "duration": "10–25 min between islands",
+          "frequency": "Hourly, daily.",
+          "ticket": "Istanbulkart or token"
+        }
+      ]
+    }
+  ],
+  "notes": [
+    "Schedules above are general guidance. Always check the day-of at the official Şehir Hatları site (sehirhatlari.istanbul) or app — frequencies change by season, weather, and weekday vs weekend.",
+    "Istanbulkart is the reloadable transport card that works on all ferries, metros, trams, and buses. Get one at any kiosk (₺200 refundable deposit) and load credit.",
+    "The Bosphorus line from Eminönü to Anadolu Kavağı (Yoros Castle) is one of the great urban ferry rides in the world — it's how most Istanbulites first fall in love with the city."
+  ]
+}

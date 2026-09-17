@@ -70,6 +70,12 @@ const poisForMap = allPois.map((p) => ({
     margin: 0;
   }
 
+  .map-layout {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
   .map-shell {
     position: relative;
     height: calc(100dvh - var(--header-height) - 220px);
@@ -88,7 +94,8 @@ const poisForMap = allPois.map((p) => ({
     inset: 0;
   }
 
-  .map-controls {
+  /* Floating legend (desktop) — absolute over the map. */
+  .map-controls--floating {
     position: absolute;
     top: var(--space-4);
     left: var(--space-4);
@@ -96,10 +103,13 @@ const poisForMap = allPois.map((p) => ({
     pointer-events: none;
   }
 
+  /* Mobile legend (below the map) — hidden on desktop, shown on phones. */
+  .map-controls--below {
+    display: none;
+  }
+
   .control-card {
     background: rgba(255, 255, 255, 0.96);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
     border-radius: var(--radius-lg);
     padding: var(--space-4);
     box-shadow: var(--shadow-lg);
@@ -261,33 +271,47 @@ const poisForMap = allPois.map((p) => ({
      still appear when the user taps/clicks a dot via the popup. */
 
   @media (max-width: 720px) {
+    /* On phones: hide the floating legend overlay; show the dedicated
+       mobile legend block that lives in normal flow below the map. This
+       way the legend never blocks pinch/pan gestures on the map. */
     .map-shell {
-      height: calc(100dvh - var(--header-height) - 280px);
+      height: calc(100dvh - var(--header-height) - 220px);
       min-height: 420px;
     }
 
-    .map-controls {
-      top: auto;
-      bottom: var(--space-4);
-      left: var(--space-3);
-      right: var(--space-3);
+    .map-controls--floating {
+      display: none;
     }
 
-    .control-card {
+    .map-controls--below {
+      display: block;
+      margin: var(--space-3) var(--space-3) var(--space-5);
+      width: auto;
+    }
+
+    .map-controls--below .control-card {
       min-width: 0;
       width: 100%;
+      padding: var(--space-3) var(--space-4);
     }
 
-    .cat-toggles {
+    .legend-simple--inline {
+      display: flex;
       flex-direction: row;
       flex-wrap: wrap;
-      gap: var(--space-1);
+      align-items: center;
+      gap: var(--space-3) var(--space-4);
     }
 
-    .cat-toggle {
-      flex: 1 1 auto;
-      font-size: var(--fs-xs);
-      padding: 6px var(--space-2);
+    .legend-simple--inline .legend-row {
+      flex: 0 0 auto;
+    }
+
+    .switch--inline {
+      flex: 0 0 auto;
+      margin-left: auto;
+      border-left: 1px solid var(--line);
+      padding-left: var(--space-4);
     }
   }
 </style>

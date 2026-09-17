@@ -263,12 +263,39 @@ export default function MapView({
   }, [showWalkRings, mapReady]);
 
   return (
-    <div className="map-shell">
-      <div ref={containerRef} className="map-canvas" aria-label="Istanbul interactive map" />
-      <div className="map-controls" role="region" aria-label="Map legend">
+    <div className="map-layout">
+      <div className="map-shell">
+        <div ref={containerRef} className="map-canvas" aria-label="Istanbul interactive map" />
+        <div className="map-controls map-controls--floating" role="region" aria-label="Map legend (desktop)">
+          <div className="control-card">
+            <h3 className="control-title">Legend</h3>
+            <div className="legend-simple">
+              <div className="legend-row">
+                <span className="legend-simple-dot legend-simple-dot--poi" />
+                <span>Point of interest</span>
+              </div>
+              <div className="legend-row">
+                <span className="legend-simple-dot legend-simple-dot--heya" />
+                <span>Heya Hotel</span>
+              </div>
+            </div>
+            <div className="toggles-row" style={{ marginTop: 'var(--space-3)', paddingTop: 'var(--space-3)', borderTop: '1px solid var(--line)' }}>
+              <label className="switch">
+                <input
+                  type="checkbox"
+                  checked={showWalkRings}
+                  onChange={(e) => setShowWalkRings(e.target.checked)}
+                />
+                <span>Walk rings</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* Mobile-only legend block, sits below the map in the document flow. */}
+      <div className="map-controls map-controls--below" role="region" aria-label="Map legend (mobile)">
         <div className="control-card">
-          <h3 className="control-title">Legend</h3>
-          <div className="legend-simple">
+          <div className="legend-simple legend-simple--inline">
             <div className="legend-row">
               <span className="legend-simple-dot legend-simple-dot--poi" />
               <span>Point of interest</span>
@@ -277,9 +304,7 @@ export default function MapView({
               <span className="legend-simple-dot legend-simple-dot--heya" />
               <span>Heya Hotel</span>
             </div>
-          </div>
-          <div className="toggles-row" style={{ marginTop: 'var(--space-3)', paddingTop: 'var(--space-3)', borderTop: '1px solid var(--line)' }}>
-            <label className="switch">
+            <label className="switch switch--inline">
               <input
                 type="checkbox"
                 checked={showWalkRings}

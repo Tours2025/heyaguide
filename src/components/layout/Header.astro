@@ -49,22 +49,25 @@ const isActive = (href: string) =>
       </span>
     </button>
   </div>
-
-  <div class="mobile-menu no-print" data-mobile-menu hidden>
-    <ul>
-      {navItems.map((item) => (
-        <li>
-          <a
-            href={item.href}
-            class:list={['mobile-link', { active: isActive(item.href) }]}
-          >
-            {item.label}
-          </a>
-        </li>
-      ))}
-    </ul>
-  </div>
 </header>
+
+<!-- Mobile menu lives OUTSIDE the header so it doesn't get trapped inside
+     the header's stacking context (which would block clicks on the toggle
+     button when the menu is open). -->
+<div class="mobile-menu no-print" data-mobile-menu hidden>
+  <ul>
+    {navItems.map((item) => (
+      <li>
+        <a
+          href={item.href}
+          class:list={['mobile-link', { active: isActive(item.href) }]}
+        >
+          {item.label}
+        </a>
+      </li>
+    ))}
+  </ul>
+</div>
 
 <style>
   .site-header {
@@ -73,10 +76,10 @@ const isActive = (href: string) =>
     left: 0;
     right: 0;
     height: var(--header-height);
-    background: rgba(247, 243, 236, 0.85);
-    backdrop-filter: saturate(180%) blur(14px);
-    -webkit-backdrop-filter: saturate(180%) blur(14px);
-    border-bottom: 1px solid rgba(20, 34, 46, 0.06);
+    /* Solid background — using backdrop-filter here would trap the mobile
+       menu's `position: fixed` to the header instead of the viewport. */
+    background: var(--color-bg);
+    border-bottom: 1px solid rgba(20, 34, 46, 0.08);
     z-index: 100;
   }
 
@@ -195,12 +198,16 @@ const isActive = (href: string) =>
 
   .mobile-menu {
     position: fixed;
-    inset: var(--header-height) 0 0 0;
+    /* Cover the full viewport. z-index 90 sits below the header (100), so
+       the header bar and its close button stay clickable on top. */
+    inset: 0;
     background: var(--color-bg);
-    z-index: 99;
-    padding: var(--space-7) var(--container-pad);
+    z-index: 90;
+    padding: calc(var(--header-height) + var(--space-5)) var(--container-pad) var(--space-7);
     transform: translateX(100%);
     transition: transform var(--dur-base) var(--ease-out);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .mobile-menu[data-open="true"] {

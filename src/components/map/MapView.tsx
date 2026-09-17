@@ -38,6 +38,8 @@ export default function MapView({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
+  const labelsRef = useRef<HTMLDivElement[]>([]);
+  const labelLayerRef = useRef<HTMLDivElement | null>(null);
   const [activeCategories, setActiveCategories] = useState<Set<string>>(
     new Set(
       initialCategory
@@ -56,7 +58,7 @@ export default function MapView({
       container: containerRef.current,
       style: MAP_STYLE as any,
       center: [28.9847, 41.0196] as LngLatLike,
-      zoom: 11.5,
+      zoom: 12.7,
       minZoom: 9,
       maxZoom: 18,
       attributionControl: { compact: true },
@@ -155,12 +157,24 @@ export default function MapView({
         type: 'circle',
         source: 'pois',
         paint: {
-          'circle-color': ['get', 'categoryColor'],
+          // Explicit per-category color (match expression) — `['get','categoryColor']`
+          // can return a typed value that MapLibre doesn't auto-coerce to color,
+          // so we use a literal match instead for reliable rendering.
+          'circle-color': [
+            'match',
+            ['get', 'category'],
+            'museums', '#8c4a8e',
+            'mosques-churches', '#2c7a5a',
+            'palaces-historical', '#b86a1e',
+            'markets', '#c83a4d',
+            'viewpoints-towers', '#1e6b8a',
+            '#666666',
+          ],
           'circle-radius': [
             'interpolate', ['linear'], ['zoom'],
-            10, 4,
-            13, 6,
-            16, 9,
+            10, 5,
+            13, 7,
+            16, 10,
           ],
           'circle-stroke-color': '#fff',
           'circle-stroke-width': 2,
@@ -280,6 +294,56 @@ export default function MapView({
 
       setMapReady(true);
 
+      // ---- HTML overlay labels for POIs -----------------------------------
+      // MapLibre's symbol layer needs a glyphs endpoint for text fonts. To avoid
+      // shipping one (extra dep, CORS surface), we render labels as positioned
+      // DOM elements that follow markers via map.project(). Updated on map move.
+      const labelLayer = document.createElement('div');
+      labelLayer.className = 'poi-label-layer';
+      labelLayer.setAttribute('aria-hidden', 'true');
+      map.getContainer().appendChild(labelLayer);
+      labelLayerRef.current = labelLayer;
+
+      const labelEls: HTMLDivElement[] = [];
+      pois.forEach((p, i) => {
+        const el = document.createElement('div');
+        el.className = `poi-label poi-label-${p.data.category}`;
+        el.dataset.slug = p.data.slug;
+        el.textContent = p.data.name;
+        el.style.position = 'absolute';
+        el.style.transform = 'translate(-50%, -130%)';
+        el.style.pointerEvents = 'none';
+        el.style.whiteSpace = 'nowrap';
+        el.style.opacity = '0';
+        el.style.transition = 'opacity 180ms ease';
+        labelLayer.appendChild(el);
+        labelEls.push(el);
+        labelsRef.current[i] = el;
+      });
+
+      const updateLabels = () => {
+        const z = map.getZoom();
+        // Show labels at zoom >= 12 — at the default zoom (12.7), every dot
+        // is identifiable. Below 12 they cluster too much in Sultanahmet.
+        const visible = z >= 12;
+        pois.forEach((p, i) => {
+          const el = labelEls[i];
+          if (!el) return;
+          if (!visible || el.style.display === 'none') {
+            el.style.opacity = '0';
+            return;
+          }
+          const c = map.project([p.data.coordinates.lng, p.data.coordinates.lat]);
+          el.style.left = `${c.x}px`;
+          el.style.top = `${c.y}px`;
+          el.style.opacity = '1';
+        });
+      };
+      map.on('move', updateLabels);
+      map.on('zoom', updateLabels);
+      map.on('moveend', updateLabels);
+      updateLabels();
+
       // Deep-link: ?place=<slug>
       if (initialPlace) {
         const target = pois.find((p) => p.data.slug === initialPlace);
@@ -300,32 +364,46 @@ export default function MapView({
 
     return () => {
       if (popupRef.current) popupRef.current.remove();
+      if (labelLayerRef.current?.parentNode) {
+        labelLayerRef.current.parentNode.removeChild(labelLayerRef.current);
+        labelLayerRef.current = null;
+      }
+      labelsRef.current = [];
       map.remove();
       mapRef.current = null;
     };
   }, []);
 
-  // Toggle category visibility
+  // Toggle category visibility (filters + hides HTML labels for off-categories)
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapReady) return;
     const allCats = Object.keys(CATEGORY_COLORS);
-    for (const cat of allCats) {
-      const visible = activeCategories.has(cat);
-      const filter = ['==', ['get', 'category'], cat];
-      map.setFilter('poi-circle-shadow', [
-        'all',
-        ...(visible ? [filter] : [['==', ['get', 'category'], '__none__']]),
-      ]);
-      map.setFilter('poi-circle', [
-        'all',
-        ...(visible ? [filter] : [['==', ['get', 'category'], '__none__']]),
-      ]);
-      map.setFilter('poi-label', [
-        'all',
-        ...(visible ? [filter] : [['==', ['get', 'category'], '__none__']]),
-      ]);
+    const visibleCats = allCats.filter((c) => activeCategories.has(c));
+
+    // MapLibre filter: 'any' of category matches for visible ones; 'none' to hide all
+    const filter: any =
+      visibleCats.length === allCats.length
+        ? null
+        : visibleCats.length === 0
+          ? ['==', ['get', 'category'], '__none__']
+          : ['any', ...visibleCats.map((c) => ['==', ['get', 'category'], c] as any)];
+
+    if (filter) {
+      if (map.getLayer('poi-circle-shadow')) map.setFilter('poi-circle-shadow', filter);
+      if (map.getLayer('poi-circle')) map.setFilter('poi-circle', filter);
+    } else {
+      // No filter = show all
+      if (map.getLayer('poi-circle-shadow')) map.setFilter('poi-circle-shadow', null as any);
+      if (map.getLayer('poi-circle')) map.setFilter('poi-circle', null as any);
     }
+
+    // Hide HTML labels for off-category POIs (handled in updateLabels via category)
+    labelsRef.current.forEach((el, i) => {
+      if (!el) return;
+      const cat = pois[i]?.data.category;
+      el.style.display = cat && activeCategories.has(cat) ? '' : 'none';
+    });
   }, [activeCategories, mapReady]);
 
   // Toggle transit visibility

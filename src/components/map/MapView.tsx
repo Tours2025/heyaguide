@@ -23,6 +23,12 @@ export default function MapView({
   const popupRef = useRef<maplibregl.Popup | null>(null);
   const [showWalkRings, setShowWalkRings] = useState(true);
   const [mapReady, setMapReady] = useState(false);
+  // Selected POI for the floating info card (replaces the old MapLibre popup,
+  // which got blocked by the legend on mobile). Set by clicking a POI on the
+  // map, by the deep-link ?place=<slug>, or by a ferry-station click.
+  const [selectedPoi, setSelectedPoi] = useState<POI | null>(null);
+  const [selectedFerry, setSelectedFerry] = useState<any | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<{ label: string; color: string } | null>(null);
 
   // Init map once
   useEffect(() => {
@@ -176,46 +182,16 @@ export default function MapView({
         },
       });
 
-      // Click ferry → popup with destinations
+      // Click ferry → open the floating info card (same UI as POI dots).
       map.on('click', 'ferry-circle', (e) => {
         const feature = e.features?.[0];
         if (!feature || feature.geometry.type !== 'Point') return;
-        const coords = (feature.geometry as any).coordinates.slice() as [number, number];
         const props = feature.properties as any;
         const station = ferries.stations.find((s) => s.id === props.id);
         if (!station) return;
-        const destsHtml = station.destinations
-          .map(
-            (d) => `
-              <div class="ferry-popup-dest">
-                <div class="ferry-popup-dest-name">${escapeHtml(d.name)}</div>
-                <div class="ferry-popup-dest-meta">
-                  <span>${escapeHtml(d.operators.join(' · '))}</span> ·
-                  <span>${escapeHtml(d.duration)}</span>
-                </div>
-              </div>`,
-          )
-          .join('');
-        const html = `
-          <article class="map-popup ferry-popup">
-            <h3 class="popup-title">${escapeHtml(props.name)}</h3>
-            <span class="popup-status">${escapeHtml(props.side)} side</span>
-            <div class="ferry-popup-note">${escapeHtml(props.note)}</div>
-            <h4 class="ferry-popup-heading">Where it goes</h4>
-            ${destsHtml}
-            <a class="popup-cta" href="/ferries/#${escapeHtml(props.id)}">See full schedule →</a>
-          </article>
-        `;
-        if (popupRef.current) popupRef.current.remove();
-        popupRef.current = new maplibregl.Popup({
-          offset: 14,
-          closeButton: true,
-          maxWidth: '320px',
-          className: 'maplibreg-custom-popup',
-        })
-          .setLngLat(coords)
-          .setHTML(html)
-          .addTo(map);
+        setSelectedFerry(station);
+        setSelectedPoi(null);
+        setSelectedStatus(null);
         if (onPlaceOpened) onPlaceOpened(`ferry-${props.id}`);
       });
       map.on('mouseenter', 'ferry-circle', () => {
@@ -246,47 +222,25 @@ export default function MapView({
         .setLngLat([HEYA_COORDINATES.lng, HEYA_COORDINATES.lat])
         .addTo(map);
 
-      // Click marker → popup
+      // Click POI dot → open the floating info card (not a MapLibre popup,
+      // which got blocked by the mobile legend and was generally cramped).
       map.on('click', 'poi-circle', (e) => {
         const feature = e.features?.[0];
         if (!feature || feature.geometry.type !== 'Point') return;
-        const coords = (feature.geometry as any).coordinates.slice() as [number, number];
         const props = feature.properties as any;
+        const poi = pois.find((p) => p.data.slug === props.slug);
+        if (!poi) return;
 
-        const status = todayStatus(
-          (pois.find((p) => p.data.slug === props.slug)?.data.hours) as any,
-        );
-
+        const status = todayStatus(poi.data.hours as any);
         const statusColor =
           status.status === 'open'
             ? '#2f7a52'
             : status.status === 'closing-soon'
               ? '#b6731b'
               : '#a13838';
-
-        const html = `
-          <article class="map-popup">
-            <h3 class="popup-title">${escapeHtml(props.name)}</h3>
-            <span class="popup-status" style="color:${statusColor}">
-              <span class="dot" style="background:${statusColor}"></span>
-              ${escapeHtml(status.label)}
-            </span>
-            <p class="popup-desc">${escapeHtml(props.short)}</p>
-            <a class="popup-cta" href="/places/${encodeURIComponent(props.slug)}">Read more →</a>
-          </article>
-        `;
-
-        if (popupRef.current) popupRef.current.remove();
-        popupRef.current = new maplibregl.Popup({
-          offset: 18,
-          closeButton: true,
-          maxWidth: '300px',
-          className: 'maplibreg-custom-popup',
-        })
-          .setLngLat(coords)
-          .setHTML(html)
-          .addTo(map);
-
+        setSelectedPoi(poi);
+        setSelectedStatus({ label: status.label, color: statusColor });
+        setSelectedFerry(null);
         if (onPlaceOpened) onPlaceOpened(props.slug);
       });
 
@@ -305,7 +259,7 @@ export default function MapView({
         // no-op, kept as a stub so we can re-enable labels later if needed
       };
 
-      // Deep-link: ?place=<slug>
+      // Deep-link: ?place=<slug> — fly to the POI and open the info card.
       if (initialPlace) {
         const target = pois.find((p) => p.data.slug === initialPlace);
         if (target) {
@@ -314,10 +268,35 @@ export default function MapView({
             zoom: 14.5,
             duration: 1800,
           });
+          const status = todayStatus(target.data.hours as any);
+          const statusColor =
+            status.status === 'open'
+              ? '#2f7a52'
+              : status.status === 'closing-soon'
+                ? '#b6731b'
+                : '#a13838';
+          // Open the card a moment after the flyTo finishes, so the user
+          // sees the dot they were looking for before the card appears.
+          setTimeout(() => {
+            setSelectedPoi(target);
+            setSelectedStatus({ label: status.label, color: statusColor });
+          }, 1900);
         }
       }
       } catch (err) {
         console.error('[MapView] error during load handler:', err);
+      }
+    });
+
+    // Click on map background (not a POI or ferry) closes any open info card.
+    map.on('click', (e) => {
+      const features = map.queryRenderedFeatures(e.point, {
+        layers: ['poi-circle', 'ferry-circle'],
+      });
+      if (features.length === 0) {
+        setSelectedPoi(null);
+        setSelectedFerry(null);
+        setSelectedStatus(null);
       }
     });
 
@@ -405,6 +384,85 @@ export default function MapView({
           </div>
         </div>
       </div>
+
+      {/* Floating info card — replaces the old MapLibre popups. Bottom-sheet
+          style on mobile (slides up from the bottom), right-side panel on
+          desktop. Renders nothing when nothing is selected. */}
+      {(selectedPoi || selectedFerry) && (
+        <div
+          className="poi-info-card"
+          role="dialog"
+          aria-label={selectedPoi ? selectedPoi.data.name : selectedFerry?.name}
+        >
+          <div className="poi-info-card-handle" aria-hidden="true" />
+          <button
+            type="button"
+            className="poi-info-card-close"
+            aria-label="Close"
+            onClick={() => {
+              setSelectedPoi(null);
+              setSelectedFerry(null);
+              setSelectedStatus(null);
+            }}
+          >
+            ×
+          </button>
+
+          {selectedPoi && (
+            <div className="poi-info-card-body">
+              <h3 className="poi-info-card-title">{selectedPoi.data.name}</h3>
+              {selectedStatus && (
+                <span
+                  className="poi-info-card-status"
+                  style={{ color: selectedStatus.color }}
+                >
+                  <span
+                    className="poi-info-card-dot"
+                    style={{ background: selectedStatus.color }}
+                  />
+                  {selectedStatus.label}
+                </span>
+              )}
+              <p className="poi-info-card-desc">
+                {selectedPoi.data.shortDescription}
+              </p>
+              <a
+                className="poi-info-card-cta"
+                href={`/places/${encodeURIComponent(selectedPoi.data.slug)}`}
+              >
+                Read more →
+              </a>
+            </div>
+          )}
+
+          {selectedFerry && (
+            <div className="poi-info-card-body">
+              <h3 className="poi-info-card-title">{selectedFerry.name}</h3>
+              <span className="poi-info-card-status">
+                {selectedFerry.side} side
+              </span>
+              <p className="poi-info-card-desc">{selectedFerry.note}</p>
+              <h4 className="poi-info-card-heading">Where it goes</h4>
+              <ul className="poi-info-card-dests">
+                {selectedFerry.destinations.map((d: any) => (
+                  <li key={d.name} className="poi-info-card-dest">
+                    <div className="poi-info-card-dest-name">{d.name}</div>
+                    <div className="poi-info-card-dest-meta">
+                      {d.operators.join(' · ')} · {d.duration}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              <a
+                className="poi-info-card-cta"
+                href={`/ferries/#${encodeURIComponent(selectedFerry.id)}`}
+              >
+                See full schedule →
+              </a>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

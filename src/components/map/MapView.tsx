@@ -8,45 +8,18 @@ import type { POI } from '../../lib/data';
 
 interface Props {
   pois: POI[];
-  initialCategory?: string;
   initialPlace?: string;
   onPlaceOpened?: (slug: string) => void;
 }
 
-const CATEGORY_COLORS: Record<string, string> = {
-  museums: '#8c4a8e',
-  'mosques-churches': '#2c7a5a',
-  'palaces-historical': '#b86a1e',
-  markets: '#c83a4d',
-  'viewpoints-towers': '#1e6b8a',
-};
-
-const CATEGORY_LABELS: Record<string, string> = {
-  museums: 'Museums',
-  'mosques-churches': 'Mosques & Religious Sites',
-  'palaces-historical': 'Palaces & Historical',
-  markets: 'Markets & Bazaars',
-  'viewpoints-towers': 'Viewpoints & Towers',
-};
-
 export default function MapView({
   pois,
-  initialCategory,
   initialPlace,
   onPlaceOpened,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<Map | null>(null);
   const popupRef = useRef<maplibregl.Popup | null>(null);
-  const labelsRef = useRef<HTMLDivElement[]>([]);
-  const labelLayerRef = useRef<HTMLDivElement | null>(null);
-  const [activeCategories, setActiveCategories] = useState<Set<string>>(
-    new Set(
-      initialCategory
-        ? [initialCategory]
-        : ['museums', 'mosques-churches', 'palaces-historical', 'markets', 'viewpoints-towers'],
-    ),
-  );
   const [showWalkRings, setShowWalkRings] = useState(true);
   const [mapReady, setMapReady] = useState(false);
 
@@ -118,14 +91,13 @@ export default function MapView({
         },
       });
 
-      // POI markers as a single GeoJSON source — render as circles colored by category
+      // POI markers as a single GeoJSON source — render as blue circles.
       const features = pois.map((p) => ({
         type: 'Feature' as const,
         properties: {
           slug: p.data.slug,
           name: p.data.name,
           category: p.data.category,
-          categoryColor: CATEGORY_COLORS[p.data.category],
           short: p.data.shortDescription,
         },
         geometry: { type: 'Point' as const, coordinates: [p.data.coordinates.lng, p.data.coordinates.lat] },
@@ -247,92 +219,11 @@ export default function MapView({
 
       setMapReady(true);
 
-      // ---- HTML overlay labels for POIs -----------------------------------
-      // MapLibre's symbol layer needs a glyphs endpoint for text fonts. To avoid
-      // shipping one (extra dep, CORS surface), we render labels as positioned
-      // DOM elements that follow markers via map.project(). Updated on map move.
-      const labelLayer = document.createElement('div');
-      labelLayer.className = 'poi-label-layer';
-      labelLayer.setAttribute('aria-hidden', 'true');
-      map.getContainer().appendChild(labelLayer);
-      labelLayerRef.current = labelLayer;
-
-      const labelEls: HTMLDivElement[] = [];
-      // Pre-measure each label so collision detection has real sizes
-      // even before the first render pass.
-      const measureCanvas = document.createElement('canvas').getContext('2d')!;
-      measureCanvas.font = '600 11px Inter, -apple-system, sans-serif';
-
-      const labelSizes: { w: number; h: number }[] = [];
-      pois.forEach((p) => {
-        const text = p.data.name || p.data.slug;
-        const w = Math.ceil(measureCanvas.measureText(text).width) + 14;
-        const h = 20;
-        labelSizes.push({ w, h });
-      });
-
-      pois.forEach((p, i) => {
-        const el = document.createElement('div');
-        el.className = `poi-label poi-label-${p.data.category}`;
-        el.dataset.slug = p.slug;
-        el.textContent = p.data.name;
-        el.style.position = 'absolute';
-        el.style.transform = 'translate(-50%, -50%)';
-        el.style.pointerEvents = 'none';
-        el.style.whiteSpace = 'nowrap';
-        el.style.opacity = '0';
-        el.style.transition = 'opacity 180ms ease';
-        el.style.width = `${labelSizes[i].w}px`;
-        el.style.textAlign = 'center';
-        labelLayer.appendChild(el);
-        labelEls.push(el);
-        labelsRef.current[i] = el;
-      });
-
-
+      // POI labels removed — user wants just blue dots. Names are still
+      // available on click via the popup (see click handler above).
       const updateLabels = () => {
-        const z = map.getZoom();
-        // Only show labels when zoomed in enough that dots are big enough to
-        // be clickable without text. Below zoom 12.5 the dots are tiny.
-        const visible = z >= 12.5;
-
-        const viewport = map.getContainer().getBoundingClientRect();
-
-        for (let i = 0; i < pois.length; i++) {
-          const p = pois[i];
-          const el = labelEls[i];
-          if (!el) continue;
-          if (!visible) {
-            el.style.opacity = '0';
-            continue;
-          }
-          const c = map.project([p.data.coordinates.lng, p.data.coordinates.lat]);
-          const { w: labelW, h: labelH } = labelSizes[i];
-
-          // Skip labels outside the visible viewport
-          if (
-            c.x < -labelW / 2 ||
-            c.x > viewport.width + labelW / 2 ||
-            c.y < -labelH / 2 ||
-            c.y > viewport.height + labelH / 2
-          ) {
-            el.style.opacity = '0';
-            continue;
-          }
-
-          // Place above the dot if room, otherwise below
-          const above = c.y >= labelH + 14;
-          const top = above ? c.y - labelH / 2 - 12 : c.y + labelH / 2 + 12;
-          el.style.left = `${c.x}px`;
-          el.style.top = `${top}px`;
-          el.style.opacity = '1';
-        }
+        // no-op, kept as a stub so we can re-enable labels later if needed
       };
-      map.on('move', updateLabels);
-      map.on('zoom', updateLabels);
-      map.on('moveend', updateLabels);
-      map.on('resize', updateLabels);
-      updateLabels();
 
       // Deep-link: ?place=<slug>
       if (initialPlace) {
@@ -354,47 +245,10 @@ export default function MapView({
 
     return () => {
       if (popupRef.current) popupRef.current.remove();
-      if (labelLayerRef.current?.parentNode) {
-        labelLayerRef.current.parentNode.removeChild(labelLayerRef.current);
-        labelLayerRef.current = null;
-      }
-      labelsRef.current = [];
       map.remove();
       mapRef.current = null;
     };
   }, []);
-
-  // Toggle category visibility (filters + hides HTML labels for off-categories)
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapReady) return;
-    const allCats = Object.keys(CATEGORY_COLORS);
-    const visibleCats = allCats.filter((c) => activeCategories.has(c));
-
-    // MapLibre filter: 'any' of category matches for visible ones; 'none' to hide all
-    const filter: any =
-      visibleCats.length === allCats.length
-        ? null
-        : visibleCats.length === 0
-          ? ['==', ['get', 'category'], '__none__']
-          : ['any', ...visibleCats.map((c) => ['==', ['get', 'category'], c] as any)];
-
-    if (filter) {
-      if (map.getLayer('poi-circle-shadow')) map.setFilter('poi-circle-shadow', filter);
-      if (map.getLayer('poi-circle')) map.setFilter('poi-circle', filter);
-    } else {
-      // No filter = show all
-      if (map.getLayer('poi-circle-shadow')) map.setFilter('poi-circle-shadow', null as any);
-      if (map.getLayer('poi-circle')) map.setFilter('poi-circle', null as any);
-    }
-
-    // Hide HTML labels for off-category POIs (handled in updateLabels via category)
-    labelsRef.current.forEach((el, i) => {
-      if (!el) return;
-      const cat = pois[i]?.data.category;
-      el.style.display = cat && activeCategories.has(cat) ? '' : 'none';
-    });
-  }, [activeCategories, mapReady]);
 
   // Transit toggle removed — transit lines no longer rendered.
 
@@ -407,15 +261,6 @@ export default function MapView({
       if (map.getLayer(id)) map.setLayoutProperty(id, 'visibility', visibility);
     });
   }, [showWalkRings, mapReady]);
-
-  const toggleCategory = (cat: string) => {
-    setActiveCategories((prev) => {
-      const next = new Set(prev);
-      if (next.has(cat)) next.delete(cat);
-      else next.add(cat);
-      return next;
-    });
-  };
 
   return (
     <div className="map-shell">

@@ -82,6 +82,12 @@ const poisForMap = allPois.map((p) => ({
     inset: 0;
   }
 
+  /* Increase specificity to beat MapLibre's .maplibregl-map { position: relative } */
+  .map-shell > .map-canvas {
+    position: absolute;
+    inset: 0;
+  }
+
   .map-controls {
     position: absolute;
     top: var(--space-4);

@@ -66,6 +66,7 @@ export default function MapView({
     map.addControl(new maplibregl.NavigationControl({ visualizePitch: false }), 'top-right');
 
     map.on('load', () => {
+      try {
       // Walk-distance rings from Heya (3 km and 5 km translucent fills)
       const ringSource = {
         type: 'FeatureCollection' as const,
@@ -83,7 +84,7 @@ export default function MapView({
         ],
       };
 
-      map.addSource('walk-rings', { data: ringSource as any });
+      map.addSource('walk-rings', { type: 'geojson', data: ringSource as any });
       map.addLayer({
         id: 'walk-ring-5km',
         type: 'fill',
@@ -130,8 +131,11 @@ export default function MapView({
       }));
 
       map.addSource('pois', {
-        type: 'FeatureCollection',
-        features: features as any,
+        type: 'geojson',
+        data: {
+          type: 'FeatureCollection',
+          features: features as any,
+        },
       });
 
       map.addLayer({
@@ -162,25 +166,10 @@ export default function MapView({
           'circle-stroke-width': 2,
         },
       });
-      map.addLayer({
-        id: 'poi-label',
-        type: 'symbol',
-        source: 'pois',
-        minzoom: 13,
-        layout: {
-          'text-field': ['get', 'name'],
-          'text-font': ['Open Sans Regular'],
-          'text-size': 11,
-          'text-offset': [0, 1.4],
-          'text-anchor': 'top',
-          'text-allow-overlap': false,
-        },
-        paint: {
-          'text-color': '#14222e',
-          'text-halo-color': '#fff',
-          'text-halo-width': 1.5,
-        },
-      });
+
+      // (POI text labels are intentionally skipped — MapLibre symbol layers
+      // need a glyphs endpoint for text fonts, and we don't ship one. The
+      // popup that opens on click shows the name; that's enough.)
 
       // Transit GeoJSON
       const transitFiles = ['t1-tram', 'm2-metro', 'f1-funicular'];
@@ -301,6 +290,9 @@ export default function MapView({
             duration: 1800,
           });
         }
+      }
+      } catch (err) {
+        console.error('[MapView] error during load handler:', err);
       }
     });
 

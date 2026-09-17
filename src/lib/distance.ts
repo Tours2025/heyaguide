@@ -3,7 +3,7 @@
  * Heya Hotel anchor: Kocatepe Mah., Dolapdere Taksim Cd. No:45, Beyoğlu.
  */
 
-export const HEYA_COORDINATES = { lat: 41.0384, lng: 28.9828 } as const;
+export const HEYA_COORDINATES = { lat: 41.0391296, lng: 28.9832318 } as const;
 
 const EARTH_RADIUS_KM = 6371;
 

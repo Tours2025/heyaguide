@@ -305,43 +305,80 @@ export default function MapView({
       labelLayerRef.current = labelLayer;
 
       const labelEls: HTMLDivElement[] = [];
+      // Pre-measure each label so collision detection has real sizes
+      // even before the first render pass.
+      const measureCanvas = document.createElement('canvas').getContext('2d')!;
+      measureCanvas.font = '600 11px Inter, -apple-system, sans-serif';
+
+      const labelSizes: { w: number; h: number }[] = [];
+      pois.forEach((p) => {
+        const text = p.data.name || p.data.slug;
+        const w = Math.ceil(measureCanvas.measureText(text).width) + 14;
+        const h = 20;
+        labelSizes.push({ w, h });
+      });
+
       pois.forEach((p, i) => {
         const el = document.createElement('div');
         el.className = `poi-label poi-label-${p.data.category}`;
-        el.dataset.slug = p.data.slug;
+        el.dataset.slug = p.slug;
         el.textContent = p.data.name;
         el.style.position = 'absolute';
-        el.style.transform = 'translate(-50%, -130%)';
+        el.style.transform = 'translate(-50%, -50%)';
         el.style.pointerEvents = 'none';
         el.style.whiteSpace = 'nowrap';
         el.style.opacity = '0';
         el.style.transition = 'opacity 180ms ease';
+        el.style.width = `${labelSizes[i].w}px`;
+        el.style.textAlign = 'center';
         labelLayer.appendChild(el);
         labelEls.push(el);
         labelsRef.current[i] = el;
       });
 
+
       const updateLabels = () => {
         const z = map.getZoom();
-        // Show labels at zoom >= 12 — at the default zoom (12.7), every dot
-        // is identifiable. Below 12 they cluster too much in Sultanahmet.
-        const visible = z >= 12;
-        pois.forEach((p, i) => {
+        // Only show labels when zoomed in enough that dots are big enough to
+        // be clickable without text. Below zoom 12.5 the dots are tiny.
+        const visible = z >= 12.5;
+
+        const viewport = map.getContainer().getBoundingClientRect();
+
+        for (let i = 0; i < pois.length; i++) {
+          const p = pois[i];
           const el = labelEls[i];
-          if (!el) return;
-          if (!visible || el.style.display === 'none') {
+          if (!el) continue;
+          if (!visible) {
             el.style.opacity = '0';
-            return;
+            continue;
           }
           const c = map.project([p.data.coordinates.lng, p.data.coordinates.lat]);
+          const { w: labelW, h: labelH } = labelSizes[i];
+
+          // Skip labels outside the visible viewport
+          if (
+            c.x < -labelW / 2 ||
+            c.x > viewport.width + labelW / 2 ||
+            c.y < -labelH / 2 ||
+            c.y > viewport.height + labelH / 2
+          ) {
+            el.style.opacity = '0';
+            continue;
+          }
+
+          // Place above the dot if room, otherwise below
+          const above = c.y >= labelH + 14;
+          const top = above ? c.y - labelH / 2 - 12 : c.y + labelH / 2 + 12;
           el.style.left = `${c.x}px`;
-          el.style.top = `${c.y}px`;
+          el.style.top = `${top}px`;
           el.style.opacity = '1';
-        });
+        }
       };
       map.on('move', updateLabels);
       map.on('zoom', updateLabels);
       map.on('moveend', updateLabels);
+      map.on('resize', updateLabels);
       updateLabels();
 
       // Deep-link: ?place=<slug>

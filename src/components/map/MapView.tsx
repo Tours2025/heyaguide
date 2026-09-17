@@ -148,6 +148,23 @@ export default function MapView({
         },
       });
 
+      // Selected-dot halo — only the currently-active POI shows this golden
+      // glow. Empty filter by default; updated via setFilter on click.
+      map.addLayer({
+        id: 'poi-selected-halo',
+        type: 'circle',
+        source: 'pois',
+        filter: ['==', ['get', 'slug'], '__none__'],
+        paint: {
+          'circle-color': '#c5a059',
+          'circle-radius': 16,
+          'circle-opacity': 0.45,
+          'circle-stroke-color': '#c5a059',
+          'circle-stroke-width': 6,
+          'circle-stroke-opacity': 0.25,
+        },
+      });
+
       // (POI text labels are intentionally skipped — MapLibre symbol layers
       // need a glyphs endpoint for text fonts, and we don't ship one. The
       // popup that opens on click shows the name; that's enough.)
@@ -193,6 +210,11 @@ export default function MapView({
         setSelectedPoi(null);
         setSelectedStatus(null);
         if (onPlaceOpened) onPlaceOpened(`ferry-${props.id}`);
+        // Scroll to the card the same way we do for POI dots
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          const card = document.querySelector('.poi-info-card');
+          if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }));
       });
       map.on('mouseenter', 'ferry-circle', () => {
         map.getCanvas().style.cursor = 'pointer';
@@ -222,15 +244,13 @@ export default function MapView({
         .setLngLat([HEYA_COORDINATES.lng, HEYA_COORDINATES.lat])
         .addTo(map);
 
-      // Click POI dot → open the floating info card (not a MapLibre popup,
-      // which got blocked by the mobile legend and was generally cramped).
-      map.on('click', 'poi-circle', (e) => {
-        const feature = e.features?.[0];
-        if (!feature || feature.geometry.type !== 'Point') return;
-        const props = feature.properties as any;
-        const poi = pois.find((p) => p.data.slug === props.slug);
-        if (!poi) return;
-
+      // Click POI dot → open the info card, highlight the dot with a golden
+      // halo, and smooth-scroll the page so the card comes into view. The
+      // three together solve the "I tapped a dot and nothing happened"
+      // problem: the halo gives instant feedback at the tap location, the
+      // scroll motion draws the eye downward, and the card's own glow
+      // animation confirms the destination.
+      const openPoiCard = (poi: POI, slug: string) => {
         const status = todayStatus(poi.data.hours as any);
         const statusColor =
           status.status === 'open'
@@ -241,7 +261,30 @@ export default function MapView({
         setSelectedPoi(poi);
         setSelectedStatus({ label: status.label, color: statusColor });
         setSelectedFerry(null);
-        if (onPlaceOpened) onPlaceOpened(props.slug);
+        if (onPlaceOpened) onPlaceOpened(slug);
+
+        // Highlight the selected dot
+        if (map.getLayer('poi-selected-halo')) {
+          map.setFilter('poi-selected-halo', ['==', ['get', 'slug'], slug]);
+        }
+
+        // Smooth-scroll the page to bring the card into view. Two RAFs
+        // gives React a chance to render the card before we scroll to it.
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          const card = document.querySelector('.poi-info-card');
+          if (card) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }));
+      };
+
+      map.on('click', 'poi-circle', (e) => {
+        const feature = e.features?.[0];
+        if (!feature || feature.geometry.type !== 'Point') return;
+        const props = feature.properties as any;
+        const poi = pois.find((p) => p.data.slug === props.slug);
+        if (!poi) return;
+        openPoiCard(poi, props.slug);
       });
 
       map.on('mouseenter', 'poi-circle', () => {
@@ -268,18 +311,9 @@ export default function MapView({
             zoom: 14.5,
             duration: 1800,
           });
-          const status = todayStatus(target.data.hours as any);
-          const statusColor =
-            status.status === 'open'
-              ? '#2f7a52'
-              : status.status === 'closing-soon'
-                ? '#b6731b'
-                : '#a13838';
-          // Open the card a moment after the flyTo finishes, so the user
-          // sees the dot they were looking for before the card appears.
+          // Open the card a moment after the flyTo finishes.
           setTimeout(() => {
-            setSelectedPoi(target);
-            setSelectedStatus({ label: status.label, color: statusColor });
+            openPoiCard(target, target.data.slug);
           }, 1900);
         }
       }
@@ -289,14 +323,21 @@ export default function MapView({
     });
 
     // Click on map background (not a POI or ferry) closes any open info card.
+    const closeCard = () => {
+      setSelectedPoi(null);
+      setSelectedFerry(null);
+      setSelectedStatus(null);
+      // Clear the selected dot halo
+      if (mapRef.current?.getLayer('poi-selected-halo')) {
+        mapRef.current.setFilter('poi-selected-halo', ['==', ['get', 'slug'], '__none__']);
+      }
+    };
     map.on('click', (e) => {
       const features = map.queryRenderedFeatures(e.point, {
         layers: ['poi-circle', 'ferry-circle'],
       });
       if (features.length === 0) {
-        setSelectedPoi(null);
-        setSelectedFerry(null);
-        setSelectedStatus(null);
+        closeCard();
       }
     });
 
@@ -323,8 +364,19 @@ export default function MapView({
 
   return (
     <div className="map-layout">
-      <div className="map-shell">
+      <div className="map-shell" data-map-top>
         <div ref={containerRef} className="map-canvas" aria-label="Istanbul interactive map" />
+        {/* Floating pointer — appears briefly when a POI/ferry is selected
+            and points down at the info card. Solves the "I tapped a dot
+            and nothing happened" problem. */}
+        {(selectedPoi || selectedFerry) && (
+          <div className="map-pointer" aria-hidden="true">
+            <span className="map-pointer-text">
+              {(selectedPoi || selectedFerry)?.name}
+            </span>
+            <span className="map-pointer-arrow">↓</span>
+          </div>
+        )}
         <div className="map-controls map-controls--floating" role="region" aria-label="Map legend (desktop)">
           <div className="control-card">
             <h3 className="control-title">Legend</h3>
@@ -397,13 +449,27 @@ export default function MapView({
           <div className="poi-info-card-handle" aria-hidden="true" />
           <button
             type="button"
+            className="poi-info-card-back"
+            onClick={() => {
+              closeCard();
+              // Smooth-scroll the user back up to the map so they can
+              // continue exploring. The map element has the data-map-top
+              // attribute so we can target it.
+              const mapTop = document.querySelector<HTMLElement>('[data-map-top]');
+              if (mapTop) {
+                mapTop.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+          >
+            <span aria-hidden="true">↑</span> Back to map
+          </button>
+          <button
+            type="button"
             className="poi-info-card-close"
             aria-label="Close"
-            onClick={() => {
-              setSelectedPoi(null);
-              setSelectedFerry(null);
-              setSelectedStatus(null);
-            }}
+            onClick={() => closeCard()}
           >
             ×
           </button>

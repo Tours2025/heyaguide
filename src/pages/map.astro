@@ -111,6 +111,52 @@ const poisForMap = allPois.map((p) => ({
     display: none;
   }
 
+  /* Map pointer — a pill that appears at the bottom-center of the map
+     when a POI/ferry is selected, saying "[Place name] ↓". This is the
+     main signal that the card has loaded below — without it, the user
+     might think their tap did nothing. */
+  .map-pointer {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 12;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 16px;
+    background: var(--color-bg-elevated);
+    border: 1.5px solid var(--color-brand);
+    border-radius: var(--radius-pill);
+    box-shadow: var(--shadow-lg);
+    pointer-events: none;
+    animation: pointer-bounce 1400ms var(--ease-out) 2;
+    max-width: calc(100% - 32px);
+  }
+
+  @keyframes pointer-bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50%      { transform: translateX(-50%) translateY(6px); }
+  }
+
+  .map-pointer-text {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--color-ink);
+    max-width: 240px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .map-pointer-arrow {
+    font-size: 18px;
+    line-height: 1;
+    color: var(--color-brand);
+    font-weight: 700;
+  }
+
   .control-card {
     background: rgba(255, 255, 255, 0.96);
     border-radius: var(--radius-lg);
@@ -349,7 +395,11 @@ const poisForMap = allPois.map((p) => ({
     box-shadow: var(--shadow-md);
     border: 1px solid var(--line);
     margin: var(--space-3) var(--space-3) var(--space-5);
-    animation: poi-card-fade-in 220ms var(--ease-out);
+    /* Two animations: fade-in (always) + a one-time glow (1.4s) that draws
+       the eye when the card first appears. */
+    animation:
+      poi-card-fade-in 240ms var(--ease-out),
+      poi-card-glow 1400ms var(--ease-out);
   }
 
   @keyframes poi-card-fade-in {
@@ -357,8 +407,38 @@ const poisForMap = allPois.map((p) => ({
     to { opacity: 1; transform: translateY(0); }
   }
 
+  @keyframes poi-card-glow {
+    0%   { box-shadow: 0 0 0 0 rgba(30, 107, 138, 0), var(--shadow-md); }
+    20%  { box-shadow: 0 0 0 6px rgba(30, 107, 138, 0.35), var(--shadow-md); }
+    100% { box-shadow: 0 0 0 0 rgba(30, 107, 138, 0), var(--shadow-md); }
+  }
+
   .poi-info-card-handle {
     display: none; /* no handle — card is in normal flow, not a sheet */
+  }
+
+  /* "Back to map" pill — sits in the top-left of the card, gives the user
+     a way to return to the map after reading. */
+  .poi-info-card-back {
+    position: absolute;
+    top: var(--space-3);
+    left: var(--space-3);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--color-bg-muted);
+    border: none;
+    color: var(--color-ink);
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    cursor: pointer;
+    transition: background var(--dur-fast) var(--ease-out);
+  }
+
+  .poi-info-card-back:hover {
+    background: var(--color-line);
   }
 
   .poi-info-card-close {
@@ -396,8 +476,13 @@ const poisForMap = allPois.map((p) => ({
     font-family: var(--font-display);
     font-size: var(--fs-xl);
     margin: 0 0 var(--space-2);
+    padding-top: 28px; /* room for the back button (top-left) */
     color: var(--color-ink);
     line-height: 1.15;
+  }
+
+  .poi-info-card-body {
+    padding-right: 40px; /* leave room for the close button (top-right) */
   }
 
   .poi-info-card-status {

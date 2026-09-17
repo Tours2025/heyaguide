@@ -47,7 +47,6 @@ export default function MapView({
         : ['museums', 'mosques-churches', 'palaces-historical', 'markets', 'viewpoints-towers'],
     ),
   );
-  const [showTransit, setShowTransit] = useState(true);
   const [showWalkRings, setShowWalkRings] = useState(true);
   const [mapReady, setMapReady] = useState(false);
 
@@ -157,19 +156,8 @@ export default function MapView({
         type: 'circle',
         source: 'pois',
         paint: {
-          // Explicit per-category color (match expression) — `['get','categoryColor']`
-          // can return a typed value that MapLibre doesn't auto-coerce to color,
-          // so we use a literal match instead for reliable rendering.
-          'circle-color': [
-            'match',
-            ['get', 'category'],
-            'museums', '#8c4a8e',
-            'mosques-churches', '#2c7a5a',
-            'palaces-historical', '#b86a1e',
-            'markets', '#c83a4d',
-            'viewpoints-towers', '#1e6b8a',
-            '#666666',
-          ],
+          // Single blue color for all POIs — consistent, easy to scan.
+          'circle-color': '#1e6b8a',
           'circle-radius': [
             'interpolate', ['linear'], ['zoom'],
             10, 5,
@@ -185,42 +173,7 @@ export default function MapView({
       // need a glyphs endpoint for text fonts, and we don't ship one. The
       // popup that opens on click shows the name; that's enough.)
 
-      // Transit GeoJSON
-      const transitFiles = ['t1-tram', 'm2-metro', 'f1-funicular'];
-      for (const name of transitFiles) {
-        map.addSource(`transit-${name}`, {
-          data: `/transit/${name}.geojson`,
-          type: 'geojson',
-        });
-        map.addLayer({
-          id: `transit-line-${name}`,
-          type: 'line',
-          source: `transit-${name}`,
-          paint: {
-            'line-color': name.includes('tram')
-              ? '#c83a4d'
-              : name.includes('metro')
-                ? '#2c7a5a'
-                : '#8c4a8e',
-            'line-width': 3,
-            'line-opacity': 0.85,
-          },
-        });
-      }
-
-      // Ferry terminals as small markers
-      map.addSource('ferry', { data: '/transit/ferry-terminals.geojson', type: 'geojson' });
-      map.addLayer({
-        id: 'ferry-circle',
-        type: 'circle',
-        source: 'ferry',
-        paint: {
-          'circle-color': '#1e6b8a',
-          'circle-radius': 5,
-          'circle-stroke-color': '#fff',
-          'circle-stroke-width': 2,
-        },
-      });
+      // Transit and ferry overlays removed — user requested no public transportation overlay.
 
       // Heya pin (DOM marker — easier to style with custom HTML)
       const heyaEl = document.createElement('div');
@@ -258,9 +211,6 @@ export default function MapView({
 
         const html = `
           <article class="map-popup">
-            <span class="popup-cat" style="background:${props.categoryColor}">
-              ${CATEGORY_LABELS[props.category] ?? props.category}
-            </span>
             <h3 class="popup-title">${escapeHtml(props.name)}</h3>
             <span class="popup-status" style="color:${statusColor}">
               <span class="dot" style="background:${statusColor}"></span>
@@ -443,18 +393,7 @@ export default function MapView({
     });
   }, [activeCategories, mapReady]);
 
-  // Toggle transit visibility
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapReady) return;
-    const visibility = showTransit ? 'visible' : 'none';
-    ['t1-tram', 'm2-metro', 'f1-funicular'].forEach((n) => {
-      if (map.getLayer(`transit-line-${n}`))
-        map.setLayoutProperty(`transit-line-${n}`, 'visibility', visibility);
-    });
-    if (map.getLayer('ferry-circle'))
-      map.setLayoutProperty('ferry-circle', 'visibility', visibility);
-  }, [showTransit, mapReady]);
+  // Transit toggle removed — transit lines no longer rendered.
 
   // Toggle walk-rings
   useEffect(() => {
@@ -478,33 +417,20 @@ export default function MapView({
   return (
     <div className="map-shell">
       <div ref={containerRef} className="map-canvas" aria-label="Istanbul interactive map" />
-      <div className="map-controls" role="region" aria-label="Map filters">
+      <div className="map-controls" role="region" aria-label="Map legend">
         <div className="control-card">
-          <h3 className="control-title">Categories</h3>
-          <div className="cat-toggles">
-            {Object.entries(CATEGORY_COLORS).map(([cat, color]) => (
-              <button
-                key={cat}
-                type="button"
-                className={`cat-toggle ${activeCategories.has(cat) ? 'on' : 'off'}`}
-                onClick={() => toggleCategory(cat)}
-                aria-pressed={activeCategories.has(cat)}
-                style={{ '--accent': color } as React.CSSProperties}
-              >
-                <span className="dot" />
-                {CATEGORY_LABELS[cat]}
-              </button>
-            ))}
+          <h3 className="control-title">Legend</h3>
+          <div className="legend-simple">
+            <div className="legend-row">
+              <span className="legend-simple-dot legend-simple-dot--poi" />
+              <span>Point of interest</span>
+            </div>
+            <div className="legend-row">
+              <span className="legend-simple-dot legend-simple-dot--heya" />
+              <span>Heya Hotel</span>
+            </div>
           </div>
-          <div className="toggles-row">
-            <label className="switch">
-              <input
-                type="checkbox"
-                checked={showTransit}
-                onChange={(e) => setShowTransit(e.target.checked)}
-              />
-              <span>Transit overlay</span>
-            </label>
+          <div className="toggles-row" style={{ marginTop: 'var(--space-3)', paddingTop: 'var(--space-3)', borderTop: '1px solid var(--line)' }}>
             <label className="switch">
               <input
                 type="checkbox"

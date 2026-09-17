@@ -2,8 +2,8 @@
 import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PoiCard from '../components/poi/PoiCard.astro';
-import CategoryCard from '../components/poi/CategoryCard.astro';
-import { CATEGORY_ORDER, CATEGORY_LABELS, groupByCategory } from '../lib/data';
+import BrowseCard from '../components/poi/BrowseCard.astro';
+import { CATEGORY_ORDER, CATEGORY_LABELS, groupByCategory, categoryColor } from '../lib/data';
 
 const allPois = await getCollection('places');
 const featured = allPois
@@ -13,6 +13,8 @@ const grouped = groupByCategory(allPois);
 const categoryCounts = Object.fromEntries(
   CATEGORY_ORDER.map((c) => [c, grouped[c].length]),
 );
+// All places, sorted by priority (default order)
+const allPoisSorted = [...allPois].sort((a, b) => b.data.priority - a.data.priority);
 ---
 
 <BaseLayout
@@ -94,16 +96,133 @@ const categoryCounts = Object.fromEntries(
     </div>
   </section>
 
-  <section class="categories section">
+  <section id="browse" class="browse section">
     <div class="container">
       <header class="section-head">
         <p class="eyebrow">Browse by theme</p>
         <h2>Five centuries in five categories</h2>
+        <p class="section-sub">
+          Tap a category to filter, or sort by how close each place is to Heya.
+          Every place below is a real recommendation — not a travel-magazine list.
+        </p>
       </header>
-      <div class="category-grid">
-        {CATEGORY_ORDER.map((cat, i) => (
-          <CategoryCard category={cat} count={categoryCounts[cat]} index={i} />
+
+      {/* Category filter cards — clicking a card sets the active category filter */}
+      <div class="browse-categories">
+        <button
+          type="button"
+          class="browse-cat-card browse-cat-card--active"
+          data-filter-category=""
+          style="--accent:#163946;"
+        >
+          <div class="cat-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/>
+            </svg>
+          </div>
+          <div class="cat-text">
+            <h3 class="cat-title">All</h3>
+            <p class="cat-desc">Every place in the guide</p>
+            <span class="cat-count" data-cat-count="">{allPois.length} places</span>
+          </div>
+        </button>
+        {CATEGORY_ORDER.map((cat) => (
+          <button
+            type="button"
+            class="browse-cat-card"
+            data-filter-category={cat}
+            style={`--accent:${categoryColor(cat)};`}
+          >
+            <div class="cat-icon" aria-hidden="true">
+              {cat === 'museums' && (
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/>
+                </svg>
+              )}
+              {cat === 'mosques-churches' && (
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 3v6M5 21V13a7 7 0 0 1 14 0v8M9 21v-4h6v4"/>
+                </svg>
+              )}
+              {cat === 'palaces-historical' && (
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 21h18M5 21V8l7-5 7 5v13M9 13h6M9 17h6"/>
+                </svg>
+              )}
+              {cat === 'markets' && (
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 9h16l-1 11H5L4 9zM8 9V6a4 4 0 0 1 8 0v3"/>
+                </svg>
+              )}
+              {cat === 'viewpoints-towers' && (
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 21V8l7-5 7 5v13M9 21v-7h6v7M9 11h6"/>
+                </svg>
+              )}
+            </div>
+            <div class="cat-text">
+              <h3 class="cat-title">{CATEGORY_LABELS[cat]}</h3>
+              <p class="cat-desc">
+                {cat === 'museums' && 'Pavilions, palaces, and one-man collections.'}
+                {cat === 'mosques-churches' && 'Imperial mosques, working churches, hidden synagogues.'}
+                {cat === 'palaces-historical' && 'Ottoman palaces, Byzantine walls, Roman cisterns.'}
+                {cat === 'markets' && 'Grand bazaars, weekly markets, antique dealers.'}
+                {cat === 'viewpoints-towers' && 'Hilltop terraces, towers, sunset lookouts.'}
+              </p>
+              <span class="cat-count" data-cat-count={cat}>{categoryCounts[cat]} places</span>
+            </div>
+          </button>
         ))}
+      </div>
+
+      {/* Sort + view-on-map bar */}
+      <div class="browse-toolbar">
+        <div class="browse-sort" role="group" aria-label="Sort places">
+          <span class="browse-sort-label">Sort:</span>
+          <button
+            type="button"
+            class="browse-sort-btn browse-sort-btn--active"
+            data-sort="featured"
+            aria-pressed="true"
+          >
+            Featured
+          </button>
+          <button
+            type="button"
+            class="browse-sort-btn"
+            data-sort="distance"
+            aria-pressed="false"
+          >
+            Closest to Heya
+          </button>
+          <button
+            type="button"
+            class="browse-sort-btn"
+            data-sort="alpha"
+            aria-pressed="false"
+          >
+            A–Z
+          </button>
+        </div>
+        <div class="browse-summary">
+          <span data-browse-summary>Showing {allPois.length} places</span>
+        </div>
+      </div>
+
+      {/* Results grid — all 60 places rendered, hidden via JS based on filter */}
+      <div class="browse-grid" data-browse-grid>
+        {allPoisSorted.map((poi, i) => (
+          <BrowseCard poi={poi} index={i} />
+        ))}
+      </div>
+
+      <div class="browse-empty" data-browse-empty hidden>
+        <p>No places match the current filter.</p>
+        <button type="button" class="cta-secondary" data-reset>Reset filters</button>
+      </div>
+
+      <div class="browse-footer">
+        <a href="/map" class="cta-secondary">See all on the map →</a>
       </div>
     </div>
   </section>
@@ -111,30 +230,16 @@ const categoryCounts = Object.fromEntries(
   <section id="featured" class="featured section">
     <div class="container">
       <header class="section-head">
-        <p class="eyebrow">Today in Istanbul</p>
-        <h2>The must-see landmarks</h2>
+        <p class="eyebrow">Today's highlights</p>
+        <h2>Don't miss</h2>
         <p class="section-sub">
-          Open right now or soon — within an hour's tram ride of Heya.
+          The handful of places we'd push hardest on a first-time visitor.
         </p>
       </header>
       <div class="featured-grid">
-        {featured.map((poi, i) => (
+        {featured.slice(0, 6).map((poi, i) => (
           <PoiCard poi={poi} index={i} />
         ))}
-      </div>
-    </div>
-  </section>
-
-  <section class="map-promo section">
-    <div class="container map-promo-inner">
-      <div class="map-promo-text">
-        <p class="eyebrow">One map, all of it</p>
-        <h2>See where everything is. Walk there from Heya.</h2>
-        <p>
-          Walk-distance rings, transit overlay, and "you are here" —
-          the map is the fastest way to plan a day.
-        </p>
-        <a href="/map" class="cta-primary">Open the map</a>
       </div>
     </div>
   </section>
@@ -246,6 +351,160 @@ const categoryCounts = Object.fromEntries(
     gap: var(--space-4);
   }
 
+  /* Browse section — category filter cards + sort + grid */
+  .browse-categories {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-7);
+  }
+
+  .browse-cat-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    padding: var(--space-6);
+    background: var(--color-bg-elevated);
+    border-radius: var(--radius-lg);
+    border: 1.5px solid var(--color-bg-muted);
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+    font: inherit;
+    transition:
+      transform var(--dur-base) var(--ease-out),
+      border-color var(--dur-base) var(--ease-out),
+      box-shadow var(--dur-base) var(--ease-out),
+      background var(--dur-fast) var(--ease-out);
+  }
+
+  .browse-cat-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .browse-cat-card--active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent),
+      var(--shadow-md);
+    background: color-mix(in srgb, var(--accent) 5%, var(--color-bg-elevated));
+  }
+
+  .browse-cat-card .cat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .browse-cat-card .cat-title {
+    font-family: var(--font-display);
+    font-size: var(--fs-xl);
+    margin: 0 0 var(--space-2);
+    color: var(--color-ink);
+  }
+
+  .browse-cat-card .cat-desc {
+    font-size: var(--fs-sm);
+    color: var(--color-ink-muted);
+    margin: 0 0 var(--space-3);
+    line-height: var(--lh-normal);
+  }
+
+  .browse-cat-card .cat-count {
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  .browse-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-5);
+    padding: var(--space-3) var(--space-4);
+    background: var(--color-bg-muted);
+    border-radius: var(--radius-md);
+    flex-wrap: wrap;
+  }
+
+  .browse-sort {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+
+  .browse-sort-label {
+    font-size: var(--fs-xs);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wider);
+    color: var(--color-ink-muted);
+    font-weight: 600;
+    margin-right: var(--space-1);
+  }
+
+  .browse-sort-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    padding: 6px 12px;
+    border-radius: var(--radius-pill);
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    color: var(--color-ink-muted);
+    cursor: pointer;
+    transition:
+      background var(--dur-fast) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+
+  .browse-sort-btn:hover {
+    color: var(--color-ink);
+    background: var(--color-bg-elevated);
+  }
+
+  .browse-sort-btn--active {
+    background: var(--color-bg-elevated);
+    color: var(--color-brand);
+    border-color: var(--color-brand);
+  }
+
+  .browse-summary {
+    font-size: var(--fs-xs);
+    color: var(--color-ink-muted);
+  }
+
+  .browse-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-5);
+  }
+
+  .browse-empty {
+    text-align: center;
+    padding: var(--space-7);
+    background: var(--color-bg-muted);
+    border-radius: var(--radius-lg);
+  }
+
+  .browse-empty p {
+    color: var(--color-ink-muted);
+    margin-bottom: var(--space-4);
+  }
+
+  .browse-footer {
+    text-align: center;
+    margin-top: var(--space-7);
+  }
+
   .featured-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -315,6 +574,126 @@ const categoryCounts = Object.fromEntries(
       const alreadyOnscreen = rect.top < window.innerHeight - 40;
       if (!alreadyOnscreen) io.observe(el);
     });
+  })();
+
+  // -----------------------------------------------------------------------
+  // Browse section filters (category + sort by closest to Heya)
+  // -----------------------------------------------------------------------
+  (() => {
+    const grid = document.querySelector<HTMLElement>('[data-browse-grid]');
+    const summary = document.querySelector<HTMLElement>('[data-browse-summary]');
+    const empty = document.querySelector<HTMLElement>('[data-browse-empty]');
+    if (!grid || !summary) return;
+
+    const cards = Array.from(grid.querySelectorAll<HTMLElement>('.browse-card'));
+    const total = cards.length;
+    const catButtons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>('.browse-cat-card'),
+    );
+    const sortButtons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>('.browse-sort-btn'),
+    );
+    const resetBtn = document.querySelector<HTMLButtonElement>('[data-reset]');
+
+    let activeCategory = '';
+    let activeSort: 'featured' | 'distance' | 'alpha' = 'featured';
+
+    const applyFilters = () => {
+      // Filter visible cards
+      let visible = 0;
+      cards.forEach((card) => {
+        const cat = card.dataset.category || '';
+        const match = !activeCategory || cat === activeCategory;
+        card.toggleAttribute('hidden', !match);
+        if (match) visible++;
+      });
+
+      // Sort
+      const sorted = [...cards].sort((a, b) => {
+        if (activeSort === 'distance') {
+          const da = parseFloat(a.dataset.distanceKm || '9999');
+          const db = parseFloat(b.dataset.distanceKm || '9999');
+          return da - db;
+        }
+        if (activeSort === 'alpha') {
+          return (a.querySelector('.browse-card-name')?.textContent || '').localeCompare(
+            b.querySelector('.browse-card-name')?.textContent || '',
+          );
+        }
+        // 'featured' = priority desc (already in default order, but be safe)
+        return parseInt(b.dataset.priority || '0') - parseInt(a.dataset.priority || '0');
+      });
+      sorted.forEach((card) => grid.appendChild(card));
+
+      // Update summary
+      summary.textContent =
+        activeSort === 'distance'
+          ? `Showing ${visible} ${visible === 1 ? 'place' : 'places'}, closest to Heya first`
+          : `Showing ${visible} ${visible === 1 ? 'place' : 'places'}`;
+
+      // Empty state
+      if (empty) empty.toggleAttribute('hidden', visible > 0);
+    };
+
+    // Wire category buttons
+    catButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        activeCategory = btn.dataset.filterCategory || '';
+        catButtons.forEach((b) =>
+          b.classList.toggle('browse-cat-card--active', b === btn),
+        );
+        applyFilters();
+        // Update hash so the selection is shareable, and the URL reflects state
+        const params = new URLSearchParams();
+        if (activeCategory) params.set('category', activeCategory);
+        const qs = params.toString();
+        const newUrl = `${location.pathname}${qs ? '?' + qs : ''}#browse`;
+        history.replaceState(null, '', newUrl);
+      });
+    });
+
+    // Wire sort buttons
+    sortButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        activeSort = (btn.dataset.sort as any) || 'featured';
+        sortButtons.forEach((b) => {
+          const active = b === btn;
+          b.classList.toggle('browse-sort-btn--active', active);
+          b.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        applyFilters();
+      });
+    });
+
+    // Reset button (in empty state)
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => {
+        activeCategory = '';
+        activeSort = 'featured';
+        catButtons.forEach((b) =>
+          b.classList.toggle('browse-cat-card--active', b.dataset.filterCategory === ''),
+        );
+        sortButtons.forEach((b) => {
+          const active = b.dataset.sort === 'featured';
+          b.classList.toggle('browse-sort-btn--active', active);
+          b.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
+        applyFilters();
+      });
+    }
+
+    // Restore from URL hash on load (?category=mosques-churches)
+    const url = new URL(location.href);
+    const initialCat = url.searchParams.get('category') || '';
+    if (initialCat) {
+      const btn = catButtons.find((b) => b.dataset.filterCategory === initialCat);
+      if (btn) {
+        catButtons.forEach((b) => b.classList.remove('browse-cat-card--active'));
+        btn.classList.add('browse-cat-card--active');
+        activeCategory = initialCat;
+        applyFilters();
+      }
+    }
   })();
 </script>
 

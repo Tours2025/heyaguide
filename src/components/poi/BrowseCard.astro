@@ -1,0 +1,173 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { categoryColor, CATEGORY_LABELS } from '../../lib/data';
+import { haversineKm, HEYA_COORDINATES } from '../../lib/distance';
+
+interface Props {
+  poi: CollectionEntry<'places'>;
+  index?: number;
+}
+
+const { poi, index = 0 } = Astro.props;
+const { slug, name, shortDescription, category, images, priority, coordinates, featured } = poi.data;
+const href = `/places/${slug}`;
+const catColor = categoryColor(category);
+const catLabel = CATEGORY_LABELS[category];
+const km = haversineKm(HEYA_COORDINATES, coordinates);
+const kmRounded = km.toFixed(1);
+const isWalkable = km < 5; // "near Heya" heuristic
+---
+
+<a
+  href={href}
+  class="browse-card"
+  data-category={category}
+  data-distance-km={km}
+  data-priority={priority}
+  data-featured={featured ? '1' : '0'}
+  data-reveal
+  style={`--reveal-delay:${Math.min(index, 8) * 40}ms;`}
+>
+  <div class="browse-card-image">
+    <img
+      src={`/places/${slug}/${images.hero}`}
+      alt={name}
+      loading={index < 4 ? 'eager' : 'lazy'}
+      decoding="async"
+      width="400"
+      height="280"
+    />
+    <span class="browse-card-chip" style={`background:${catColor};`}>
+      {catLabel}
+    </span>
+  </div>
+  <div class="browse-card-body">
+    <h3 class="browse-card-name">{name}</h3>
+    <p class="browse-card-desc">{shortDescription}</p>
+    <div class="browse-card-meta">
+      <span class="browse-card-distance">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+          <circle cx="8" cy="8" r="6"/>
+          <path d="M8 2v3M8 11v3M2 8h3M11 8h3" stroke-linecap="round"/>
+        </svg>
+        {kmRounded} km from Heya
+      </span>
+      {isWalkable && <span class="browse-card-walkable">Walkable</span>}
+    </div>
+  </div>
+</a>
+
+<style>
+  .browse-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg-elevated);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--color-bg-muted);
+    text-decoration: none;
+    color: inherit;
+    transition:
+      transform var(--dur-base) var(--ease-out),
+      box-shadow var(--dur-base) var(--ease-out),
+      border-color var(--dur-base) var(--ease-out);
+  }
+
+  .browse-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-bg-muted);
+  }
+
+  .browse-card[hidden] {
+    display: none;
+  }
+
+  .browse-card-image {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--color-bg-muted);
+  }
+
+  .browse-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 400ms var(--ease-out);
+  }
+
+  .browse-card:hover .browse-card-image img {
+    transform: scale(1.04);
+  }
+
+  .browse-card-chip {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: white;
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+
+  .browse-card-body {
+    padding: var(--space-4) var(--space-5) var(--space-5);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    flex: 1;
+  }
+
+  .browse-card-name {
+    font-family: var(--font-display);
+    font-size: var(--fs-lg);
+    margin: 0;
+    color: var(--color-ink);
+    line-height: 1.2;
+  }
+
+  .browse-card-desc {
+    font-size: var(--fs-sm);
+    color: var(--color-ink-muted);
+    line-height: 1.45;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .browse-card-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: auto;
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--color-bg-muted);
+    font-size: var(--fs-xs);
+  }
+
+  .browse-card-distance {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--color-ink-muted);
+    font-weight: 500;
+  }
+
+  .browse-card-walkable {
+    margin-left: auto;
+    color: var(--color-brand);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wider);
+    font-size: 10px;
+  }
+</style>
